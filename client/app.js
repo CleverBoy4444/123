@@ -1,3 +1,5 @@
+/* global io, $ */
+
 var socket = io();
 
 $('form').submit(function() {
