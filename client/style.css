@@ -1,63 +1,76 @@
-* { 
-  margin: 0; 
-  padding: 0; 
-  box-sizing: border-box; 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: 'Roboto Condensed', sans-serif;
-  margin: 0;
-  color: #244751;
-  background-color: lightgray;
+    font-family: 'Roboto Condensed', sans-serif;
+    margin: 0;
+    color: #244751;
+    background-color: lightgray;
 }
 
 main {
-  width: 450px;
-  margin: 20px auto;
-  padding: 2em;
-  background-color: white;
-  border: 1px solid black;
-  border-radius: 10px;
+    width: 90%;
+    /*increased width*/
+    margin: 20px auto;
+    padding: 2em;
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 10px;
 }
 
 input[type=text] {
-  border: solid 1px #244751;
-  padding: .5em;
-  font-size: 1em;
+    border: solid 1px #244751;
+    padding: .5em;
+    font-size: 1em;
 }
 
 button {
-  padding: .5em;
-  background-color: white;
-  border: solid 1px #244751;
-  display: inline-block;
+    padding: .5em;
+    background-color: #77b300;
+    /* Turned green just because */
+    border: solid 2px #244751;
+    display: inline-block;
 }
 
 form {
-  border-top: 1px solid black;
-  margin-top: 10px;
-  padding-top: 10px;
+    border-top: 1px solid black;
+    margin-top: 10px;
+    padding-top: 10px;
 }
 
 #you {
-  width: 50px;
+    width: 50px;
 }
 
 #m {
-  width: 284px;
+    width: 284px;
 }
 
-#messages { 
-  list-style-type: none; 
-  margin: 0; 
-  padding: 0;
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
 }
 
-#messages li { 
-  padding: 5px 10px;
-  background: #ddd;
+#messages li {
+    padding: 5px 10px;
+    background: #f7ffe6;
+    border-bottom-style: groove;
+    border-bottom-color: #77b300;
+    word-wrap: break-word;
+    padding-top: 20px;
+    padding-bottom: 10px;
 }
 
-#messages li:nth-child(odd) { 
-  background: #eee; 
+#messages li:nth-child(odd) {
+    background: #eeffcc;
 }
+
+
+/*OTHER THINGS:
+I wanted to make your posts slightly lightly colored to you, and other peoples posts more easy to see, but I couldnt do it.
+
+*/

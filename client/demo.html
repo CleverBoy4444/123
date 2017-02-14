@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Eon Project Forums</title>
+        <link rel="stylesheet" type="text/css" href="css/forum.css">
+    </head>
+    
+<!-- THIS IS THE FORUM LAYOUT, CONTENT GETS INSERTED INTO THIS TEMPLATE -->
+    <body class='page' data-page="category">
+        <div class="page-wrapper">
+            <h2 class='page-title'>Eon Project Forums</h2>
+            <ul class="page-nav">
+                <li id="viewing">Viewing: Categories</li>
+                <li>
+                    <span>Sort by date:&nbsp;</span>
+                    <select id="order">
+                        <option value="descending" selected="selected">descending</option>
+                        <option value="ascending">ascending</option>
+                    </select>
+                </li>
+                <li id="goto"><a href="javascript:void(0);">View Topics</a></li>
+                <li id="log-status">User Not Signed In...</li>
+                <li><input id="log-button" type="button" value="Sign In" /></li>
+            </ul>
+            <hr>
+            <div class="page-content">
+                <div id="forum-output" class="column left"></div>
+                <div id="user-input" class="column right">
+                    <div id="subject-wrapper" class="transparent wrapper">
+                        <h4>Subject</h4>
+                        <div class="subject" contenteditable="true"></div>
+                        <br>
+                    </div>
+                    <h4>Description</h4>
+                    <div class="description" contenteditable="true"></div>
+                    <div class="transparent">
+                        <input id="user-submit" type="button" value="Create Category" />
+                        <input id="preview-md" type="button" value="Preview Markdown" />
+                    </div>
+                </div>
+            </div>
+        </div>
+<!-- END FORUM LAYOUT -->
+
+
+<!-- THESE ARE HIDDEN TEMPLATES, HTML TO BE STAMPED AND FILLED IN BY JAVASCRIPT/PHP -->
+<div class="hidden">
+    <div id="category-template">
+        <div class="category">
+            <div class="header">
+                <div class="subject"></div>
+                <div class="owner"></div>
+                <div class="timestamp"></div>
+            </div>
+            <div class="content">
+                <div class="description hidden"></div>
+                <hr>
+                <div class="content hidden"></div>
+            </div>
+        </div>
+    </div>
+    <div id="topic-template">
+        <div class="topic">
+            <div class="header">
+                <div class="subject"></div>
+                <div class="owner"></div>
+                <div class="timestamp"></div>
+            </div>
+            <div class="content hidden">
+                <div class="description hidden"></div>
+                <hr>
+                <div class="content hidden"></div>
+            </div>
+        </div>
+    </div>
+    <div id="post-template">
+        <div class="post">
+            <div class="response"></div>
+        </div>
+        <div class="footer">
+            <div class="ownedby"></div>
+            <div class="timeof"></div>
+        </div>
+    </div>
+</div>
+
+<!-- END HIDDEN TEMPLATES -->
+
+    </body>
+    
+    <script src="js/jquery-3.1.1.slim.min.js"></script>
+    
+    <!-- HERE IS THE CODE TO DEMO THE FRONT END -->
+    <script>
+        ( function () {
+            var $catTempl = $('#category-template'),
+                $topTempl = $('#topic-template'),
+                $posTempl = $('#post-template'),
+                $pageContent = $('.page-content');
+            
+            var subject = [ "Cat", "Dog", "Hyena" ],
+                action = [ "is", "was", "takes" ],
+                object = [ "funny.", "not funny.", "a break." ];
+            
+            var owners = [ "Eric", "Lukalot", "CodeDrawer", "Darian" ],
+                user,
+                categories = [],
+                topics = [];
+                posts = [];
+            
+            var order = document.getElementById ('order');
+                page = document.documentElement,
+                compare = function ( order ) {
+                    if ( order === 'ascending' ) {
+                        return function ( a, b ) {
+                            return a.time.getTime () < b.time.getTime () ? -1 : a.time.getTime () > b.time.getTime () ? 1 : 0;
+                        };
+                    }
+                    
+                    return function ( a, b ) {
+                        return b.time.getTime () < a.time.getTime () ? -1 : b.time.getTime () > a.time.getTime () ? 1 : 0;
+                    };
+                }
+                
+                function sortBy ( order ) {
+                    var comparator = compare ( order );
+                    switch ( page.dataset.page ) {
+                        case 'category' :
+                            categories.sort ( comparator );
+                            return categories;
+                        case 'topic' :
+                            topics.sort ( comparator );
+                            return topics;
+                        default :
+                            posts.sort ( comparator );
+                            return posts;
+                    }
+                }
+                
+                function showCategories () {
+                    
+                }
+                
+                function showTopics () {}
+                
+                function showPosts () {}
+            
+            function randomTopic () {
+                return subject [ Math.random() * 3 | 0 ] +
+                    action [ Math.random () * 3 | 0 ] +
+                    object [ Math.random () * 3 | 0 ];
+            }
+            
+            function randomOwner () {
+                return owners [ Math.random () * 4 | 0 ];
+            }
+            
+            function showCategories () {
+                $pageContent.empty ();
+                var $categories = $ ( $catTempl.html () );
+                $categories.find ( '.owner' ).text ( randomOwner );
+                $categories.find ( )
+                $pageContent.append ( )
+            }
+            
+            function validateOwner ( owner ) {
+                if ( !~owners.indexOf ( owner ) ) {
+                    throw new TypeError ( "category owner must be one of: " + owners );
+                }
+            }
+            
+            function has ( name, value ) {
+                return function (e) {
+                    return e [ name ] === value;
+                }
+            }
+            
+            function validatePost ( owner, category, topic ) {
+                validateOwner ( owner );
+                
+                var hasCategory = false;
+                if ( !categories.some ( has ( 'category', category ) ) ) {
+                    throw new TypeError ( "category must be created, it does not exist: " + category );
+                }
+                
+                if ( !topics.some ( has ( 'topic', topic ) ) ) {
+                    throw new TypeError ( "topic must be created, it does not exist: " + topic );
+                }
+            }
+            
+            function createCategory ( owner, subject, description ) {
+                validateOwner ( owner );
+                
+                return {
+                    type: 'category',
+                    owner: owner,
+                    subject: subject,
+                    description: description,
+                    time: new Date ()
+                };
+           }
+           
+           
+           function createTopic ( owner, subject, description ) {
+                validateOwner ( owner );
+                
+                return {
+                    type: 'topic',
+                    owner: owner,
+                    subject: subject,
+                    description: description,
+                    
+                }
+            }
+            
+            function createPost ( owner, category, topic, description ) {
+                validatePost ( owner, category, topic );
+                
+                return {
+                    type: 'post',
+                    owner: owner,
+                    category: category,
+                    topic: topic,
+                    description: description,
+                    time: new Date ()
+                }
+            }
+           
+        } ) ();
+    </script>
+</html>

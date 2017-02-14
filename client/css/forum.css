@@ -1,0 +1,157 @@
+* {
+    margin: 0;
+    padding: 0;
+    background: #222;
+    color: #efd;
+}
+
+a {
+    color: #abc;
+}
+
+a:active {
+    color: #def;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    background: transparent;
+}
+
+html {
+    background: #111;
+}
+
+/* all .page applies to the entire site */
+.page {
+    margin: 8px;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.page-nav {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+    list-style: none;
+    font-size: 16px;
+}
+
+.page-nav li {
+    display: table-cell;
+    text-align: center;
+}
+
+.page-title {
+    text-align: center;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.page-content {
+    display: flex;
+    flex-direction: row;
+    flex: 1 0 auto;
+    overflow: auto;
+    margin: 4px;
+    position: relative;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 0;
+    overflow: auto;
+    border: 1px inset darkgray;
+    margin: 4px;
+    padding: 8px;
+    background-color: #111;
+}
+
+.column * {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.transparent {
+    background-color: transparent;
+}
+
+.wrapper {
+    margin: 0;
+    padding: 0;
+}
+
+input[type=button] {
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* all .category applies to category content */
+.category {
+    
+}
+
+/* .topic applies to topics */
+.topic {
+    
+}
+
+/* the owner of a topic/category/post */
+.owner::before {
+    content: "By";
+}
+
+/* the date/time of creation for a category/topic/post */
+.timestamp {
+    
+}
+
+/*  categories and topics have headers, subjects
+    descriptions, content and may or may not have responses */
+.header {
+    
+}
+
+.subject, .description {
+    font-family: monospace;
+}
+
+.subject {
+    height: 1.4em;
+    border: 1px inset darkgray;
+    padding: 2px 8px;
+}
+
+.description {
+    flex: 1;
+    border: 1px inset darkgray;
+    padding: 8px;
+}
+
+#preview-md {
+    float: right;
+}
+
+.response {
+    
+}
+
+.hidden {
+    display: none;
+}

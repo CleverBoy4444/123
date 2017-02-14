@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Eon Forums &amp; Chat</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <form id="create-user">
+            <table>
+                <th>Create a New User Account</th>
+                <tr>
+                    <td><label for="user-name">User Name</label></td>
+                    <td><input id="user-name" type="text" maxlength="40" /></td>
+                </tr><tr>
+                    <td><label for="password">Password</label></td>
+                    <td><input id="password" type="password" /></td>
+                </tr><tr>
+                    <td><label for="confirm">Confirm Password</label></td>
+                    <td><input id="confirm" type="password" /></td>
+                </tr><tr>
+                    <td><label for="email">Email</label></td>
+                    <td><input id="email" type="text" /></td>
+                </tr>
+            </table>
+            <input id="create" type="submit" value="Create Account" />
+        </form>
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+        <script>
+            ( function () {
+                var inpForm = document.getElementById ( 'create-user' ),
+                    inpUser = document.getElementById ( 'user-name' ),
+                    inpPass = document.getElementById ( 'password' ),
+                    inpConf = document.getElementById ( 'confirm' ),
+                    inpEmail = document.getElementById ( 'email' );
+                
+                var socket = io();
+                
+                inpForm.addEventListener ( "submit", function (event) {
+                    
+                } );
+            } ) ();
+        </script>
+    </body>
+</html>

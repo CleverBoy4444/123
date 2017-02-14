@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Eon Forums &amp; Chat</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <form id="create-user">
+            <table>
+                <th>Create a New User Account</th>
+                <tr>
+                    <td><label for="user-name">User Name</label></td>
+                    <td><input id="user-name" type="text" placeholder="Enter user name" maxlength="40" /></td>
+                </tr><tr>
+                    <td><label for="password">Password</label></td>
+                    <td><input id="password" type="password" placeholder="Enter password"/></td>
+                </tr><tr>
+                    <td><label for="confirm">Confirm Password</label></td>
+                    <td><input id="confirm" type="password" placeholder="Confirm password"/></td>
+                </tr><tr>
+                    <td><label for="email">Email</label></td>
+                    <td><input id="email" type="text" placeholder="Enter email address"/></td>
+                </tr>
+            </table>
+            <input id="create" type="submit" value="Create Account" />
+            <label id="strength" style="color:red;">Password Strength: Weak</label>
+            <label id="error"></label>
+        </form>
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+        <script>
+            /* global io */
+            ( function () {
+                var inpForm = document.getElementById ( 'create-user' ),
+                    inpUser = document.getElementById ( 'user-name' ),
+                    inpPass = document.getElementById ( 'password' ),
+                    inpConf = document.getElementById ( 'confirm' ),
+                    inpEmail = document.getElementById ( 'email' ),
+                    inpStrn = document.getElementById ( 'strength' ),
+                    inpErr = document.getElementById ( 'error' );
+                
+                var socket = io();
+                
+                var formSubmitted = false;
+                
+                // some minor validation
+                var required = [ /^.*[0-9].*$/, /^.*[!@#$%&*].*$/ ],
+                    illegal = /^.*[^a-zA-Z0-9!@#$%&*].*$/,
+                    email = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+                
+                function formIsValid () {
+                    if ( inpUser.value.length < 1 ) {
+                        inpErr.innerHTML = 'Error: must enter user name';
+                        inpUser.focus ();
+                        return false;
+                    }
+                    
+                    if ( inpPass.value !== inpConf.value ) {
+                        inpErr.innerHTML = 'Error: password and confirmation must match';
+                        inpPass.focus ();
+                        return false;
+                    }
+                    
+                    if (
+                        !required.reduce ( function (p, e) { return p & e.test ( inpPass.value ); }, true )
+                    ) {
+                        inpErr.innerHTML = 'Error: password must contain a number and one of the characters "!@#$%&*"';
+                        inpPass.focus ();
+                        return false;
+                    }
+                    
+                    if ( inpPass.value.length < 10 ) {
+                        inpErr.innerHTML = 'Error: password must be at least 10 characters';
+                        inpPass.focus ();
+                        return false;
+                    } else {
+                        
+                    }
+                    
+                    if ( !email.test ( inpEmail.value ) ) {
+                        inpErr.innerHTML = 'Error: must enter a valid email';
+                        inpEmail.focus ();
+                        return false;
+                    }
+                    
+                    return true;
+                };
+                
+                inpForm.addEventListener ( "submit", function (event) {
+                    
+                    if ( formSubmitted ) {
+                        return false;
+                    }
+                    
+                    if ( !formIsValid () ) {
+                        //inpS
+                        return false;
+                    }
+                    
+                    socket.emit ( 'message', JSON.stringify ( { messageType: 'new-user', name: inpUser.value, pass: inpPass.value, email: inpEmail } ) );
+                } );
+                
+                socket.on ( 'message', function ( msg ) {
+                    
+                } );
+            } ) ();
+        </script>
+    </body>
+</html>
