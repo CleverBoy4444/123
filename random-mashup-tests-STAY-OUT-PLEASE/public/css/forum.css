@@ -63,13 +63,22 @@ html {
     padding-bottom: 16px;
 }
 
-.page-content {
+.page-login, .page-content {
     display: flex;
     flex-direction: row;
     flex: 1 0 auto;
     overflow: auto;
     margin: 4px;
     position: relative;
+}
+
+.page-login {
+    align-items: center;
+    justify-content: center;
+}
+
+.form-login {
+    flex: 0 0 auto;
 }
 
 .column {
@@ -128,11 +137,11 @@ input[type=button] {
     
 }
 
-#subject, #body {
+.subject, .description {
     font-family: monospace;
 }
 
-#subject {
+.subject {
     height: 1.4em;
     border: 1px inset darkgray;
     padding: 2px 8px;
@@ -147,7 +156,7 @@ input[type=button] {
     padding: 0;
 }
 
-.description-scroll {
+.scroll-wrapper {
     position: absolute;
     top: 0;
     right: 0;
@@ -158,7 +167,7 @@ input[type=button] {
     flex-direction: row;
 }
 
-.description {
+#description, #content-column {
     margin: 0;
     padding: 8px;
     flex: 1;

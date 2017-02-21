@@ -1,0 +1,26 @@
+//-
+    the preceeding //- does not render content,
+    however without the dash ( - ) it will render an
+    html comment such as <!-- stuff -->,
+    indentation denotes block comments
+    --------------------------------------------------
+    
+    this is the main layout for the site
+    it's not to be rendered as is
+    all pages prefixed with "layout-" extend this layout
+
+doctype html
+html
+    head
+        meta(charset='utf-8')
+        title Eon Project Forums
+        link(rel='stylesheet', type='text/css', href='css/forum.css')
+        script(type='text/javascript', src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.slim.min.js')
+        script(type='text/javascript', src='https://cdnjs.cloudflare.com/ajax/libs/remarkable/1.7.1/remarkable.min.js')
+        script(type='text/javascript', src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.slim.js')
+    body.page
+        /* generates a div with class='page-wrapper' */
+        .page-wrapper
+            h2.page-title Eon Project Forums
+            block content
+    

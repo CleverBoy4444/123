@@ -1,0 +1,13 @@
+//- partials represent snippets to be rendered, not full pages
+    this is the navigation partial for the forum page
+
+ul.page-nav
+    li Viewing:
+        span#viewing Category
+    li
+        span= 'Sort By Date: '
+        select#order
+            option(value='descending', selected='selected') descending
+            option(value='ascending') ascending
+    li#goto: a(href='javascript:void(0);') View Topics
+    if ( createUser )

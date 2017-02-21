@@ -7,11 +7,11 @@
     </head>
     
 <!-- THIS IS THE FORUM LAYOUT, CONTENT GETS INSERTED INTO THIS TEMPLATE -->
-    <body class='page' data-page="category">
-        <div class="page-wrapper">
+    <body class='page'>
+        <div class="page-wrapper"> 
             <h2 class='page-title'>Eon Project Forums</h2>
             <ul class="page-nav">
-                <li id="viewing">Viewing: Categories</li>
+                <li>Viewing: <span id="viewing">#{user.view}</span></li>
                 <li>
                     <span>Sort by date:&nbsp;</span>
                     <select id="order">
@@ -19,21 +19,31 @@
                         <option value="ascending">ascending</option>
                     </select>
                 </li>
-                <li id="goto"><a href="javascript:void(0);">View Topics</a></li>
-                <li id="log-status">User Not Signed In...</li>
-                <li><input id="log-button" type="button" value="Sign In" /></li>
+                <li><a id="goto" href="javascript:void(0);">View Topics</a></li>
+                <li>Welcome #{user.name}</li>
+                <li><input id="log-button" type="button" value="Sign Out" /></li>
             </ul>
             <hr>
             <div class="page-content">
-                <div id="forum-output" class="column left"></div>
+                <div id="forum-output" class="column left">
+                    <div class="scroll-wrapper wrapper">
+                        <div id="content-column">
+                            ( No Categories... )
+                        </div>
+                    </div>
+                </div>
                 <div id="user-input" class="column right">
                     <div id="subject-wrapper" class="transparent wrapper">
                         <h4>Subject</h4>
-                        <div class="subject" contenteditable="true"></div>
+                        <div id="subject" contenteditable="true"></div>
                         <br>
                     </div>
                     <h4>Description</h4>
-                    <div class="description" contenteditable="true"></div>
+                    <div class="description-container">
+                        <div class="scroll-wrapper wrapper">
+                            <div id="body" contenteditable="true"></div>
+                        </div>
+                    </div>
                     <div class="transparent">
                         <input id="user-submit" type="button" value="Create Category" />
                         <input id="preview-md" type="button" value="Preview Markdown" />

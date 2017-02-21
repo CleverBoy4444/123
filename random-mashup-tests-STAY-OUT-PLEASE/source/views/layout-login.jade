@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    hr
+    /* login markup here */
+    .page-login
+        form#login.transparent
+            ul.form-login.transparent
+                li
+                    label(for='user-name') User Name:
+                    input(id='user-name', type='text')
+                li
+                    label(for='password') Password:
+                    input(id='password', type='password')
+                li
+                    label(for='confirm') Confirm:
+                    input(id='confirm', type='password')
+                li
+                    if ( signup ) {
+                        input(id='create', type='submit', value='Create Account')
+                    }
+                    input(id='submit', type='submit', value='Login User')
