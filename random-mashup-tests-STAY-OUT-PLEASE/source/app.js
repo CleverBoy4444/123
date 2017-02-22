@@ -28,24 +28,13 @@ app.set('view engine', 'jade');
 // define the public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// the login page
-routeLogin = require ( './login.js' ) ( app, db, router, io );
+// configure application routes
+require ( './app-routing.js' ) ( app, db, router );
 
-// the forum page
-routeDefault = require ( './forum.js' ) ( app, db, router, io );
-
-// wrap user sessions ( close server when everyone leaves )
-var session_wrapper = require ( './wrap-io-session.js' ).bind ( server, db );
-
-require ( './io-routes.js' ) ( io, session_wrapper );
-
-app.use ( '/', router );
+// configure 
+require ( './io-routing.js' ) ( server, db, io );
 
 server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function() {
     var addr = server.address();
     console.log("Application server running at", addr.address + ":" + addr.port);
 });
-
-exports.app = app;
-exports.io = io;
-exports.db = db;

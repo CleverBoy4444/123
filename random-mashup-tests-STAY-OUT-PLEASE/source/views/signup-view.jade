@@ -1,0 +1,8 @@
+extends layout
+
+block content
+    hr
+        p Signup unavailable - contact admin to create user account
+        p ( redirecting... )
+    script.
+        setTimeout ( function () { window.location = '/login'; }, 3000 );
