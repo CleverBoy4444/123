@@ -1,31 +1,32 @@
 
-var mysql = require ( 'mysql' );
+var resolveQueries = require ( './queries/resolve-queries.js' );
+var q = require ( './queries/short-query.js' );
 var users = {};
 var rooms = {};
 
 function getRoomId ( room ) {
-    var roomId;
+    var namespace;
     
     if ( 'name' in room ) {
-        roomId = room.name;
+        namespace = [room.name];
     } else {
-        var namespace = [ room.categoryId ];
+        namespace = [ room.categoryId ];
         if ( 'topicId' in room ) {
             namespace.push ( room.topicId );
         }
-        roomId = namespace.join ( ':' );
     }
     
-    return roomId;
+    return namespace;
 }
 
-// joining allows two way mapping
-// every room can contain multiple users
-// and every user can be in multiple rooms
-function join ( db, username, room, socket ) {
-    
-    var roomId = getRoomId ( room );
-    
+function dbError ( socket, message ) {
+    return function ( err ) {
+        console.log ( err );
+        socket.emit ( 'error', message, err );
+    };
+}
+
+function mapUserRooms ( roomId, username ) {
     if ( roomId in rooms ) {
         rooms [ roomId ].users [ username ] = true;
     } else {
@@ -40,82 +41,94 @@ function join ( db, username, room, socket ) {
         users [ username ].rooms [ roomId ] = true;
     } else {
         users [ username ] = {
-            rooms: {}
-        }
+            rooms: {},
+            current: roomId
+        };
         
         users [ username ].rooms [ roomId ] = true;
     }
+}
+
+// joining allows two way mapping
+// every room can contain multiple users
+// and every user can be in multiple rooms
+function join ( db, username, room, socket ) {
     
-    socket.join ( roomId, function () {
+    var path = getRoomId ( room ),
+        id = path.join ( ':' ),
+        perReq = 10;
+    
+    if ( username in users ) {
+        socket.leave ( users [ username ].current, function () {} )
+    }
+    mapUserRooms ( id, username );
+    
+    socket.join ( id, function () {
         var session = socket.request.session,
             user = session.user;
         
-        socket.to ( roomId ).emit ( 'joined', username );
+        socket.to ( id ).emit ( 'joined', username );
         
-        var search = roomId.split ( ':' );
-        var categoryId, topicId, name, sql, count;
-        if ( search.length > 1 ) {
-            categoryId = parseInt( search [ 0 ], 10 );
-            topicId = parseInt ( search [ 1 ], 10 );
+        var cId, tId, name;
+        if ( path.length > 1 ) {
+            cId = parseInt( path [ 0 ], 10 );
+            tId = parseInt ( path [ 1 ], 10 );
         } else {
-            if ( isNaN ( parseInt ( search [ 0 ], 10 ) ) ) {
-                name = search [ 0 ];
+            var temp;
+            if ( isNaN ( temp = parseInt ( path [ 0 ], 10 ) ) ) {
+                name = path [ 0 ];
+            } else {
+                cId = temp;
             }
         }
+        
+        var onerr = dbError ( socket, 'database: query failed' ),
+            w = '*', c = 'category', t = 'topic', p = 'post', s = 'created',
+            count, posts, queries;
+        
+        count = (new q()).c(w);         // 'count(*)'
+        posts = (new q()).s(w);         // 'select *'
         
         if ( name ) {
-            count = 'count (*) from category';
-            sql = mysql.format (
-                'select * from category order by created ? limit ?, 10',
-                [ user.order === 'descending' ? 'desc' : 'asc', user.position ]
-            );
+            count = count.f(c).end();   // 'from category'
+            posts.f(c);                 // '''
         } else {
-            if ( topicId !== undefined ) {
-                count = 'count (*) from post where topic='+topicId;
-                sql = mysql.format (
-                    'select * from post where topic=? order by created ? limit ?, 10',
-                    [ topicId, user.order === 'descending' ? 'desc' : 'asc', user.position ]
-                );
-            } else if ( categoryId !== undefined ) {
-                count = 'count (*) from topic where category='+categoryId;
-                sql = mysql.format (
-                    'select * from topic where category=? order by created ? limit ?, 10',
-                    [ categoryId, user.order === 'descending' ? 'desc' : 'asc', user.position ]
-                );
+            if ( tId !== undefined ) {
+                var to = q.eq ( t, tId );           // to = 'topic=#{topicId}'
+                count = count.f(p).w(to).end();     // 'from post where #{to}'
+                posts.f(p).w(to);                   // '''
+            } else if ( cId !== undefined ) {
+                var ca = q.eq ( c, cId );           // ca = 'category=#{categoryId}'
+                count = count.f(t).w(ca).end();     // 'from topic where #{ca}'
+                posts.f(t).w(ca);                   // '''
             }
         }
         
-        db.query ( count, function ( err, results, field ) {
-            if ( err ) {
-                console.log ( err );
-                socket.emit ( 'error', 'database: query failed', err );
-            } else {
-                var total = results [ 0 ];
-                db.query ( sql,
-                    function ( err, results, field ) {
-                        if ( err ) {
-                            console.log ( err );
-                            socket.emit ( 'error', 'database: query failed', err );
-                        } else {
-                            for ( var i = 0, l = results.length; i < l; i = i + 1 ) {
-                                socket.emit ( 'article', results [ i ] );
-                            }
-                        }
-                        
-                        user.position += 10;
-                        if ( user.position > total ) {
-                            user.position = total;
-                        }
-                        socket.emit ( 'position', user.position );
-                        socket.emit ( 'remaining', total - user.position );
-                        session.save ();
-                    }
-                );
-            }
+        // + order by 'created' ( user.order === "descending" ? "desc" : "asc"
+        // + limit to perReq posts starting from user current viewing position
+        // ( within the set of all posts for this forum/category/topic )
+        posts = posts[ user.order.substring ( 0, 1 ) ](s).l(user.position,perReq).end();
+        
+        // queue queries
+        var total;
+        queries.push (
+            [ count, onerr, function ( rows ) {
+                // number of database entries for this query ( categories/topics/posts )
+                total = rows [ 0 ];
+            } ],
+            [ posts, onerr, function ( rows ) {
+                rows.forEach ( function (e) { socket.emit ( 'article', e ); } );
+            } ]
+        );
+        
+        // execute all queries, then...
+        resolveQueries ( db, queries, function () {
+            user.position = Math.min ( user.position + perReq, total );
+            var remaining = total - user.position;
+            socket.emit ( 'remaining', remaining );
+            user.position += Math.min ( perReq, remaining );
         } );
     } );
-    
-    db = username = room = socket = null;
 }
 
 function leave ( db, username, room, socket, route ) {
@@ -128,8 +141,6 @@ function leave ( db, username, room, socket, route ) {
     socket.leave ( roomId, function () {
         socket.to ( roomId ).emit ( 'left', username );
     } );
-    
-    db = username = room = socket = route = null;
 }
 
 function close ( username, room, ns, socket ) {

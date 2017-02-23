@@ -4,17 +4,15 @@ block content
             .scroll-wrapper.wrapper
                 #content-column ( No Categories )
         #user-input.column.right
-            if ( user.view !== 'Post' ) {
-                #subject-wrapper.transparent.wrapper
-                    h4 Subject
-                    div(id='subject', contenteditable='true')
-                    br
-            }
-            - var descriptor = user.view !== 'Post' ? 'Description' : 'Response';
-            h4 #{descriptor}
+            #subject-wrapper.transparent.wrapper
+                h4 Subject
+                div(id='subject', contenteditable='true')
+                br
+            h4#description Description
             .description-container
                 .scroll-wrapper.wrapper
                     div(id='body', contenteditable='true')
             .transparent
-                input(id='user-submit', type='button', value=('Post '+user.view==='Post'?'Message':user.view))
-                input(id='preview-html' type='button' value='Preview Markup')
+                input(id='user-submit', type='button', value='Save')
+                input(id='preview-html' type='button' value='Preview')
+        script(src='js/app.js')

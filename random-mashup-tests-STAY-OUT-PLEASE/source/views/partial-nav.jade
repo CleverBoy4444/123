@@ -2,12 +2,19 @@
     this is the navigation partial for the forum page
 
 ul.page-nav
-    li Viewing:
-        span#viewing Category
     li
-        span= 'Sort By Date: '
+        span= 'Select: '
+        select#select
+            option(id='category', value='category', selected='selected') Category
+            option(id='topic', value='topic') Topic
+    li
+        span= 'Owner: '
+        select#owner
+            option(value='all-users', selected='selected') (default) All users
+            - each owner in #{owners}
+                option(value='#{\'owner_\'+owner.id}') #{owner.name}
+    li
+        span= 'Order By: '
         select#order
-            option(value='descending', selected='selected') descending
-            option(value='ascending') ascending
-    li#goto: a(href='javascript:void(0);') View Topics
-    if ( createUser )
+            option(value='oldest', selected='selected') oldest
+            option(value='newest') newest
