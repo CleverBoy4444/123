@@ -1,3 +1,20 @@
+/**
+ * Session Manager provides callbacks for "open",
+ * "message" and "close" events, to be used for
+ * every socket that connects to an io namespace.
+ * 
+ * Note that "open" and "message" events essentially
+ * hook up session messaging within the same scope,
+ * "message" event handler occurs immediately after
+ * "open" event handler.  The "close" event handler
+ * can only be reached when the socket is
+ * disconnecting.
+ * 
+ * The Session Manager shuts down the server auto-
+ * matically one minute after all io sessions have
+ * disconnected.
+ */
+
 var enumConnection = 0,
     connectionCount = 0,
     lastConnection;
@@ -21,12 +38,14 @@ exports = function ( server, db, ns ) {
         }
     };
     
-    ns.on('connection', function ( socket ) {
+    ns.on('connect', function ( socket ) {
+        
+        var username = socket.request.session.user.name;
         
         // track user connections
         var socketId = enumConnection++;
         
-        console.log ( 'connected user: ' + socketId );
+        console.log ( 'connected user: ' + username + ', socketId: ' + socketId );
         
         connectionCount++;
         
