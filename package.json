@@ -1,9 +1,13 @@
 {
-  "name": "eon-forum-and-chat",
-  "version": "0.0.1",
-  "description": "My first chat app!",
-  "dependencies": {
-    "express": "4.10.2",
-    "socket.io": "1.2.0"
-  }
+    "name": "eon-forum-and-chat",
+    "version": "0.0.1",
+    "description": "node, express, socket-io basic live forum for internal use",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/EricBalingit/eon-forum-and-chat"
+    }
+    "dependencies": {
+        "express": "4.14.1",
+        "socket.io": "1.7.3"
+    }
 }
