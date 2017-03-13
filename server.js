@@ -1,78 +1,79 @@
-var express = require('express');
-var app = express();
+var express = require ( 'express' ),
+    session = require ( 'express-session' ),
+    MySqlStore = require ( 'express-mysql-session' ),
+    path = require ( 'path' ),
+    app = express (),
+    router = express.Router (),
+    server = require ( 'http' ).Server ( app ),
+    io = require ( 'socket.io' ) ( server ),
+    db,
+    db_connection = {
+        connectionLimit : 10,
+        host: process.env.IP || 'localhost',
+        user: process.env.C9_USER || 'root',
+        password: '',
+        database: 'eon_forums' // change if not on Cloud9
+    },
+    sessionStore_options = {
+        checkExpirationInterval: 900000,    // check session expiration every 15 min
+        expiration: 86400000,               // session expires after 24 hours
+        createDatabaseTable: true,          // create session table automatically
+    },
+    sessionStore,
+    con = require ( './console/config-console.js' ),
+    initDatabase = require ( './init.js' );
 
-var http = require('http');
-var server = http.Server(app);
-
-var mysql = require('mysql');
-
-var io = require('socket.io')(server);
-
-app.use(express.static('client'));
-
-var dbHost = process.env.IP || 'localhost',
-    dbUser = process.env.C9_USER || 'root';
-
-var connection = mysql.createConnection({
-    host: dbHost,
-    user: dbUser,
-    password: '',
-    database: 'eon_forums' // change if not on Cloud9
-});
-
-// var sql = 'select `id`,`owner` from `category`';
-// connection.query(sql, function(err, rows) {
-//     if (err) {
-//         console.error('categories sql error: ' + err.stack);
-//     } else {
-//         //console.log ( JSON.stringify(rows) );
-//     }
-// });
-
-var enumConnection = 0,
-    connectionCount = 0;
-
-io.on('connection', function(socket) {
-        
-    // track user connections
-    var socketId = enumConnection++;
+// init db here, if anything fails we have no server
+initDatabase ( db_connection, function callback ( err, result ) {
+    if ( err ) {
+        console.log ( err.message );
+        console.log ( 'shutting down server...' );
+        server.close ();
+        process.exit ( 1 );
+        return;
+    }
     
-    console.log ( 'connected user: ' + socketId );
+    db = result;
     
-    connectionCount++;
+    con.message ( 'creating session store, engine mysql ( session table created for ' + db_connection.database + ')' );
+    sessionStore = new MySqlStore ( sessionStore_options, db );
+    var serverSession = session ( {
+        secret: 'eon_forum_session',    // server side session secret
+        store: sessionStore,
+        resave: true,
+        saveUninitialized: true
+    } );
     
-    socket.on('message', function(msg) {
-        io.emit('message', msg);
+    io.use ( function ( socket, next ) {
+        serverSession ( socket.request, socket.request.res, next );
+    } );
+    
+    app.use ( serverSession );
+    
+    // configure application routes
+    con.message ( 'loading application routes /forums, /login, ( /signup )' );
+    require ( './app-routing.js' ) ( app, db, router );
+    
+    // configure io routes
+    con.message ( 'loading io routes' );
+    require ( './io-routing.js' ) ( server, db, io );
+    
+    app.use ( router );
+    
+    // set the view folder ( /source/views ) and templating engine ( jade )
+    con.message ( 'app view engine - pug' );
+    app.set ( 'views', path.join ( __dirname, 'views' ) );
+    app.set ( 'view engine', 'pug' );
+    
+    // define the public folder
+    con.message ( 'public folder points to /js, /css' );
+    app.use ( express.static ( path.join ( __dirname, 'public' ), { redirect : false } ) );
+    
+    con.message ( 'starting server!' );
+    server.listen( process.env.PORT || 3000, process.env.IP || "0.0.0.0", function () {
+        var addr = server.address();
+        con.message ( 'server ready!' );
+        con.message ( 'application server running at ' + addr.address + ':' + addr.port );
     });
-    
-    socket.on('disconnect', function() {
-        io.emit('message', "User disconnected");
-        
-        connectionCount--;
-        
-        console.log ( 'disconnected user: ' + socketId );
-        
-        if ( connectionCount === 0 ) {
-            // async termination allows exit->die
-            setTimeout ( function () {
-                
-                // end the database connection
-                //db.end ();
-                
-                // close the http server
-                server.close ( function () {
-                    console.log ( 'Shutting down server...' );
-                    
-                    // terminate the server shell
-                    // try to allow the current process to return
-                    setTimeout ( function () { process.exit ( 0 ); }, 1 );
-                } );
-            }, 1);
-        }
-    });
-});
+} );
 
-server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function() {
-    var addr = server.address();
-    console.log("Chat server running at", addr.address + ":" + addr.port);
-});

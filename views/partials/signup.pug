@@ -1,0 +1,22 @@
+append content
+    h3.column-item.flex-none.center Create User Account
+    .column-item.flex-none.flex-parent.row.flex-center
+        .site-form
+            iframe(src='/alt', name='alt', style='display:none;')
+            form(action='/alt', method='post', target='alt', id='user-signup', class='flex-none column-item flex-parent column layout-column')
+                label(for='username', class='column-item') User name
+                input(id='user-name', type='text', name='username', class='column-item', autocomplete='on', placeholder='Enter user name')
+                span#name-error.signup-error.hidden
+                br
+                label(for='password', class='column-item') Password
+                input(id='user-pass', type='password', name='password', class='column-item', autocomplete='on', placeholder='Create password')
+                span#pass-error.signup-error.hidden
+                br
+                label(for='confirm', class='column-item') Confirm password
+                input(id='user-conf', type='password', name='confirm', class='column-item', autocomplete='off', placeholder='Verfiy password')
+                span#conf-error.signup-error.hidden
+                br
+                br
+                input(id='create-user' type='submit', value='Create account', class='column-item')
+    h5#success.flex-none.center.hidden
+    span#error.signup-error.flex-none.center.hidden

@@ -1,0 +1,22 @@
+block content
+    .page-content
+        #forum-output.column
+            .scroll-wrapper
+                #forum-content.scroll-content ( No Categories )
+        #forum-input.column
+            #input-wrapper
+                h4#editor-view New Category
+                #title-wrapper.transparent
+                    h4 Title
+                    .title-wrapper
+                        div(id='title', contenteditable='true')
+                    br
+                h4 Description
+                .description-container
+                    .scroll-wrapper
+                        div(id='body', class='scroll-content', contenteditable='true')
+            #preview-wrapper.hidden
+            .transparent
+                input(id='preview-html' class='left', type='button' value='Preview')
+                input(id='user-submit', class='right', type='button', value='Submit')
+        script(src='js/app.js')

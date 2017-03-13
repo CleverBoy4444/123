@@ -1,0 +1,25 @@
+append templates
+	template#view-about
+		.about
+			.owner
+			.created
+			.edit
+			.updated
+		.more.hidden
+	
+	template#view-article
+		.article
+			.title
+			.body
+			.about
+			.replies
+	
+	template#view-reply
+		.reply
+			.body
+			.about
+	
+	template#view-chat-min
+		.chat-min.flex-none.flex-parent.row.row-item
+			span.room.row-item
+			div(class='close', title='close chat session')

@@ -1,0 +1,233 @@
+* {
+    margin: 0;
+    padding: 0;
+    background: #222;
+    color: #efd;
+}
+
+a {
+    color: #abc;
+}
+
+a:active {
+    color: #def;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    background-color: transparent;
+    color: #efd;
+}
+
+html {
+    background-color: #111;
+}
+
+/* all .page applies to the entire site */
+.page {
+    margin: 8px;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.page-wrapper {
+    display: flex;
+    flex-direction: column;
+    padding: 4px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.page-nav {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+    list-style: none;
+    font-size: 16px;
+}
+
+.page-nav li {
+    display: table-cell;
+    text-align: center;
+}
+
+.page-title {
+    text-align: center;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.page-login, .page-content {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    flex: 1 0 0;
+    margin: 4px;
+    position: relative;
+}
+
+.page-login {
+    align-items: center;
+    justify-content: center;
+}
+
+.form-login {
+    flex: 0 0 auto;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 0;
+    border: 1px solid darkgray;
+    margin: 4px;
+}
+
+#forum-output {
+    border: 0;
+}
+
+#forum-input>*, #input-wrapper>*, #title-wrapper>* {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+#input-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 0;
+}
+
+#editor-view {
+    text-align: center;
+}
+
+#title, #body {
+    font-family: monospace;
+}
+
+#body {
+    overflow: auto;
+}
+
+.title-wrapper, .scroll-content {
+    border: 1px inset darkgray;
+    background-color: #111;
+}
+
+.title-wrapper {
+    height: 1.4em;
+    position: relative;
+}
+
+#title {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 2px 8px;
+    background-color: #111;
+}
+
+.description-container {
+    display: flex;
+    flex: 1;
+    padding: 0;
+}
+
+.scroll-wrapper {
+    margin: 0;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    background-color: #111;
+}
+
+.scroll-content, #forum-input {
+    padding: 8px;
+}
+
+.scroll-content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    background-color: #111;
+}
+
+/*
+#description, #content-column {
+    margin: 0;
+    padding: 8px;
+    flex: 1;
+}
+
+#preview-md {
+    float: right;
+}
+*/
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.transparent {
+    background-color: transparent;
+}
+
+input[type=button] {
+    padding: 2px 8px;
+    border-radius: 3px;
+    border: 1px outset lightgray;
+    background-color: #333;
+}
+
+/* all .category applies to category content */
+.category {
+    
+}
+
+/* .topic applies to topics */
+.topic {
+    
+}
+
+/* the owner of a topic/category/post */
+.owner {
+    
+}
+
+/* the date/time of creation for a category/topic/post */
+.timestamp {
+    
+}
+
+/*  categories and topics have headers, titles
+    descriptions, content and may or may not have responses */
+.header {
+    
+}
+
+.response {
+    
+}
+
+.hidden {
+    display: none;
+}

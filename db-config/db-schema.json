@@ -1,0 +1,109 @@
+{
+    "tables": {       // table names cannot be changed or app will not function
+        "user": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "name": "varchar ( 40 ) not null",
+                "password": "binary ( 64 ) not null",
+                "join_date": "date not null",
+            },
+            "primary": [ "id" ],
+            "unique": [ "id", "name" ],
+            "engine": "innodb"
+        },
+        "category": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "owner": "int ( 11 ) not null",
+                "title": "varchar ( 200 ) not null",
+                "body": "varchar ( 65536 ) not null",
+                "created": "timestamp not null default current_timestamp",
+                "edited": "timestamp null default null on update current_timestamp"
+            },
+            "primary": [ "id" ],
+            "unique": [ "id" ],
+            "foreign": {
+                "owner": { "user": "id" }
+            },
+            "engine": "innodb"
+        },
+        "topic": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "owner": "int ( 11 ) not null",
+                "category": "int ( 11 ) not null",
+                "title": "varchar ( 200 ) not null",
+                "body": "varchar ( 65536 ) not null",
+                "created": "timestamp not null default current_timestamp",
+                "edited": "timestamp null default null on update current_timestamp"
+            },
+            "primary": [ "id" ],
+            "unique": [ "id" ],
+            "foreign": {
+                "owner": { "user": "id" },
+                "category": { "category": "id" }
+            },
+            "engine": "innodb"
+        },
+        "post": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "owner": "int ( 11 ) not null",
+                "topic": "int ( 11 )",
+                "category": "int ( 11 )",
+                "body": "varchar ( 65536 ) not null",
+                "created": "timestamp not null default current_timestamp",
+                "edited": "timestamp null default null on update current_timestamp"
+            }
+            "primary": [ "id" ],
+            "unique": [ "id" ],
+            "foreign": {
+                "owner": { "user": "id" },
+                "category": { "category": "id" }
+            },
+            "engine": "innodb"
+        },
+        "chat": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "owner": "int ( 11 ) not null",
+                "created": "timestamp not null default current_timestamp",
+                "updated": "timestamp null default null on update current_timestamp"
+            },
+            "primary": [ "id" ],
+            "foreign": {
+                "owner": { "user": "id" }
+            }
+            "engine": "innodb"
+        },
+        "chat_user": {
+            "fields": {
+                "chat": "int ( 11 ) not null",
+                "user": "int ( 11 ) not null",
+            },
+            "primary": [ "chat", "user" ],
+            "foreign": {
+                "chat": { "chat": "id" },
+                "user": { "user": "id" }
+            },
+            "engine": "innodb"
+        },
+        "chat_post": {
+            "fields": {
+                "id": "int ( 11 ) not null auto_increment",
+                "chat": "int ( 11 ) not null",
+                "owner": "int ( 11 ) not null",
+                "body": "varchar ( 65536 ) not null",
+                "created": "timestamp not null default current_timestamp",
+                "edited": "timestamp null default null on update current_timestamp"
+            },
+            "primary": [ "id" ],
+            "foreign": {
+                "chat": { "chat": "id" },
+                "owner": { "user": "id" }
+            },
+            "engine": "innodb"
+        }
+    },
+    "procedures": null
+}

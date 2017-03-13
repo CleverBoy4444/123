@@ -1,0 +1,11 @@
+{
+    title: "Eon Project Forum",     // the main heading/title for the forum site
+    signup: true,                   // allow signup access
+    database: {
+        host: "0.0.0.0",
+        user: "ericbalingit",
+        password: "",               // don't forget to set a password
+        database: "eon_forum",      // any name you choose
+        schema: "tables.sql"        // USE WITH CAUTION!
+    }
+}

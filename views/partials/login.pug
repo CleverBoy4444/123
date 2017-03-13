@@ -1,0 +1,22 @@
+append content
+    h3.column-item.flex-none.center User Login
+    .column-item.flex-none.flex-parent.row.flex-center
+        .site-form
+            form#user-login.flex-none.flex-parent.column.layout-column
+                .column-item User name
+                input(id='user-name', type='text', name='username', class='column-item', autocomplete='on', placeholder='Enter user name')
+                br
+                .column-item Password
+                input(id='user-pass', type='password', name='password', class='column-item', autocomplete='on', placeholder='Create password')
+                br
+                br
+                input(id='login-user' type='button', value='Login', class='column-item')
+    .column-item.center
+        br
+        if signup
+            span= 'Don\'t have an account? '
+                a(href='/signup') Signup here
+        else
+            span= 'Signup is unavailable. If you do not have an account, please contact the system administrator.'
+    h5#success.flex-none.center.hidden
+    span#error.signup-error.flex-none.center.hidden
