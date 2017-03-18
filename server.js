@@ -70,7 +70,7 @@ initDatabase ( db_connection, function callback ( err, result ) {
     app.use ( express.static ( path.join ( __dirname, 'public' ), { redirect : false } ) );
     
     con.message ( 'starting server!' );
-    var port = process.env.PORT || 3000,
+    var port = process.env.PORT || 8080,
         addr = process.env.IP || "0.0.0.0";
     try {
         server.listen( port, addr, function () {

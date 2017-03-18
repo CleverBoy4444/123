@@ -20,13 +20,13 @@
                 this.$ui.id.userMessageBox.html ( '<span class="error-message">' + ( message || 'Something went wrong, but I don\'t know what.  Sorry about that. See console and contact system administrator.' ) + '</span>' ); },
             
             chatin: function ( id, name, message ) {
-                this.chatMessage ( id, name + ': ' + message ); },
+                this.chatMessage ( id, name, message ); },
             
             joined: function ( id, name ) {
-                this.chatMessage ( id, id + ': "' + name + '" joined the room' ); },
+                this.chatMessage ( id, id,  '"' + name + '" joined the room' ); },
             
             left: function ( id, name ) {
-                this.chatMessage ( id, id + ': "' + name + '" left the room' );
+                this.chatMessage ( id, id, '"' + name + '" left the room' );
             }
         },
         
@@ -37,7 +37,7 @@
                 click: [ '[id$="stubs"]', function ( event ) {
                     var $ui = event.data.$ui,
                         $forumContent = $ui.forumContent,
-                        view = ( this.id ).split ( '-' ) [ 0 ],
+                        view = ( event.target.id ).split ( '-' ) [ 0 ],
                         $view = $ui [ view + 'View'];
                     
                     $forumContent.find ( '>[id]' ).addClass ( 'hidden' );
@@ -147,15 +147,11 @@
                         $userChatTitle.text ( chat.title || '' );
                         $userChatOwner.text ( chat.owner || '' );
                         
+                        $userChatContent.empty ();
                         for ( var i in messages ) {
-                            if ( typeof messages [ i ] === 'string' ) {
-                                $userChatContent.append ( $ ( '<div class="message">' ).append ( $.parseHTML ( messages [ i ] ) ) );
-                            } else {
-                                var message = messages [ i ];
-                                $userChatContent.append ( $ ( '<div class="message">' ).text ( message.error + '\n\n' + message.originalMessage ) );
-                            }
+                            $id.userChatContent.append ( $.parseHTML ( messages [ i ] ) );
                         }
-                        $userChatContent.html ( chat.messages.join ( '' ) );
+                        //$userChatContent.html ( chat.messages.join ( '' ) );
                         
                         $userChat.attr ( 'data-room', id );
                         $userChat.removeClass ( 'hidden' );
@@ -213,318 +209,6 @@
     
 // }
     
-    /*
-    
-// variable declarations {
-    
-    var $menu = $ ( '#menu' ),
-        $menuButton = $( '#toggle-menu' ),
-        $menuContent = $ ( '#menu-content' ),
-        $showMessages = $ ( '#show-messages' ),
-        $menuItems = $ ( '.menu-item' ),
-        
-        // page navigation
-        $select = $ ( '#select' ),
-        $category = $ ( '#category' ),
-        $topic = $ ( '#topic' ),
-        
-        // search
-        $owner = $ ( '#owner' ),
-        $order = $ ( '#order' ),
-        $online = $ ( '#online' ),
-        
-        // visual queues
-        $contentRemaining = $ ( '#content-column .remaining-content' ),
-        $contentLoading = $ ( '#content-column .loading' ),
-        $moreContent = $ ( '#more-content' ),
-        
-        // user views
-        $allViews = ( '#content-column' ),
-        $categoryStubs = $ ( '#category-stubs' ),
-        $categoryView = $ ( '#category-view' ),
-        $topicStubs = $ ( '#topic-stubs' ),
-        $topicView = $ ( '#topic-view' ),
-        
-        // current content view
-        $currentView = $categoryStubs,
-        
-        // user controls
-        $titleSection = $ ( '#title-section' ),
-        $titleInput = $ ( '#user-title' ),
-        $bodyInput = $ ( '#user-body' ),
-        $userPost = $ ( '#user-post' ),
-        $userPreview = $ ( '#user-preview' ),
-        $previewContent = $ ( '#preview-content' ),
-        $submitButton = $ ( '#submit' ),
-        $previewButton = $ ( '#preview' ),
-        $userMessageBox = $ ( '#user-message-box' ),
-        $userMessage = $ ( '#user-message' ),
-        $userChatBar = $ ( '#user-chat-bar' ),
-        $userName = $ ( '#user-name' ),
-        $userChat = $ ( '#user-chat' ),
-        $userChatRoom = $ ( '#user-chat-room' ),
-        $userChatTitle = $ ( '#user-chat-title' ),
-        $userChatContent = $ ( '#user-chat-content' ),
-        myName = $userName.text (),
-        myRooms = {},
-        sentRequests = [],
-        recievedArticles = [],
-        requestUID = 0,
-        
-        // page templates
-        tempAbout = document.getElementById ( 'template-about' ),
-        tempArticle = document.getElementById ( 'template-article' ),
-        tempReply = document.getElementById ( 'template-reply' ),
-        tempChatMin = document.getElementById ( 'template-chat-min' );
-    
-// }
-    
-// helpers {
-    
-    function socketErr ( err, message ) {
-        if ( err ) {
-            console.log ( err );
-        } else if ( arguments.length = 1 ) {
-            message = err;
-        }
-        
-        $userMessageBox.html ( '<span class="error-message">' + ( message || 'Something went wrong, but I don\'t know what.  Sorry about that. See console and contact system administrator.' ) + '</span>' );
-    }
-    
-    function createPageRequest ( section, parent, parentId, fromIndex, newest ) {
-        var request = {
-            uid: requestUID++,
-            from: section,
-            references: parent,
-            id: parentId,
-            index: fromIndex,
-            newest: newest
-        };
-        
-        sentRequests.push ( request );
-        return request;
-    }
-    
-    function requestPage ( section, parent, parentId, fromIndex, newest ) {
-        socket.emit ( 'request', 'page', createPageRequest ( section, parent, parentId, fromIndex, newest ) );
-    }
-    
-    function createUpdateRequest ( section, parent, parentId, since, fromIndex, newest ) {
-        var request = {
-            uid: requestUID++,
-            from: section,
-            references: parent,
-            id: parentId,
-            timestamp: since,
-            index: fromIndex,
-            newest: newest
-        };
-        
-        sentRequests.push ( request );
-        return request;
-    }
-    
-    function setData ( node, name, data ) {
-        if ( arguments.length === 2 ) {
-            if ( typeof name === 'string' ) {
-                return $.data ( node, name );
-            } else if ( typeof name === 'object' ) {
-                for ( var key in name ) {
-                    $.data ( node, key, name [ key ] );
-                }
-            }
-        } else if ( arguments.length === 3 ) {
-            $.data ( node, name, data );
-        }
-    }
-    
-    function createChatTab ( room, title, id ) {
-        var node = tempChatMin.content.cloneNode ( true );
-        $ ( '.room', node ).text ( room );
-        myRooms [ room ] = node;
-        $userChatBar.append ( node );
-        setData ( node, { room: room, title: title || null, id: id || null, html: '' } );
-        alert ( 'room: ' + $.data ( node, 'room' ) );
-    }
-    
-    function postToRoom ( room, user, message ) {
-        var data = myRooms [ room ].data ();
-        data.html = data.html + '<p>' + user + ': ' + message + '</p>';
-    }
-    
-    // a column of html content based on templates, provided for requests
-    function DataView ( $parent, id, newest, template ) {
-        this.$parent = $parent;
-        this.id = id;
-        this.top = [];
-        this.bottom = [];
-        this.length = 0;
-        this.position = 0;
-        this.template = typeof template === 'string' ? document.getElementById ( template ) : template;
-    }
-    
-    DataView.prototype.addContent = function ( data, newest ) {
-        
-    };
-// }
-
-// socket event bindings {
-    socket.on ( '_error_', function ( err, message ) {
-        socketErr ( err, message );
-    } );
-    
-    // the default view of the page
-    socket.on ( 'join', function ( room ) {
-        $userMessage.html ( '<span class="message">You are in room "' + room + '", happy chatting!' );
-        if ( ! ( room in myRooms ) ) {
-            createChatTab ( room );
-        }
-    } );
-    
-    socket.on ( 'leave', function ( room ) {
-        delete myRooms [ room ];
-        $userMessageBox.html ( '<span class="message">You are no longer in room "' + room + '".' );
-    } );
-    
-    socket.on ( 'joined', function ( name, room ) {
-        var userRoom = myRooms [ room ],
-            html = userRoom.data ( 'html' );
-        
-        userRoom.data ( 'html' )
-        $userMessageBox.html ( '<span class="message">User "' + name + '" joined the room.</span>' );
-    } );
-    
-    socket.on ( 'left', function ( name ) {
-        $userMessageBox.html ( '<span class="message">User "' + name + '" left the room.</span>' );
-    } );
-    
-    socket.on ( 'response', function ( message, data ) {
-        var request;
-        for ( var i = 0, l = sentRequests.length; i < l; i = i + 1 ) {
-            if ( sentRequests [ i ].uid === data.uid ) {
-                request = sentRequests [ i ];
-                break;
-            }
-        }
-        $userMessageBox.html ( '<span class="message">' + message + '</span>' );
-    } );
-    
-// }
-    
-// ET phone home {
-    
-    socket.emit ( 'join', 'Forum' );
-    
-    //requestPage ( 'category', null, null, 0, true );
-    
-// }
-    
-// jquery event bindings {
-    
-    // $ ( 'body' ).on ( 'click', 'a', function ( e ) {
-    //     // no location changes while on page
-    //     e.preventDefault ();
-    //     e.stopPropagation ();
-    // } );
-    
-    // {
-    $userChatBar.on ( 'click', '.room', function ( e ) {
-        
-        // alert ( this.textContent );
-        // var self = myRooms [ this.textContent ],
-        //     data = self.data ();
-        // alert ( self.data ( 'room' ) );
-        // $userChatRoom.text ( data.room );
-        // if ( data.title ) {
-        //     $userChatTitle.text ( data.title );
-        //     $userChatTitle.removeClass ( 'hidden' );
-        // }
-        // $userChatContent.html ( data.html );
-        // $userChat.removeClass ( 'hidden' );
-        
-    } );
-    
-    // switch primary view
-    $select.on ( 'click', 'option', function ( e ) {
-        $allViews.find ( '[id]' ).addClass ( 'hidden' );
-        $allViews.find ( '[id=' + this.id + '-stubs]' ).removeClass ( 'hidden' );
-    } );
-    
-    // switch to secondary view
-    $categoryStubs.on ( 'click', 'a.stub', function ( e ) {
-        $allViews.find ( '[id]' ).addClass ( 'hidden' );
-        $categoryView.removeClass ( 'hidden' );
-        
-        // request data if needed
-        // scroll to subject
-    } );
-    
-    // stop propagation above menu ( so we can listen
-    // for other events and close it )
-    $menu.on ( 'click', function () {
-        return false;
-    } );
-    
-    // menu should automatically go away when anything else is clicked
-    $ ( document ).on ( 'click', function () {
-        $menuContent.addClass ( 'hidden' );
-    } )
-    
-    $menuItems.each ( function ( i, e ) {
-        e.$check = $ ( e ).find ( '.check' );
-    } );
-    
-    $menuButton.on ( 'click', function ( e ) {
-        $menuContent.toggleClass ( 'hidden' );
-    } );
-    
-    $menuItems.on ( 'click', function ( e ) {
-        this.$check.toggleClass ( 'checked' );
-    } );
-    // }
-    
-    $showMessages.on ( 'click', function ( e ) {
-        $userMessageBox.toggleClass ( 'hidden', !this.$check.hasClass ( 'checked' ) );
-    } );
-    
-    $userPreview.loading = $userPreview.find ( '.loading' );
-    
-    $previewButton.on ( 'click', function ( e ) {
-        if ( this.value === 'Preview' ) {
-            
-            // get a promise to handle the content render
-            new Promise ( function ( resolve, reject ) {
-                // some views do not have a title
-                var title = $titleSection.hasClass( 'hidden' ) ? '' : $titleInput.val ();
-                try { // try to render content
-                    resolve ( md.render ( '### ' + title + '\n' + $bodyInput.val () ) ); //----
-                } catch ( err ) {                                                           //
-                    // reject content ---------------------------------------               //
-                    reject ( err );                                         //              //
-                }                                                           //              //
-            } ).then ( function ( html ) {  // success  <-------------------//--------------//
-                //$userPreview.loading.addClass ( 'hidden' );              //
-                $previewContent.html ( html );                                 //
-            } ).catch ( function ( err ) {  // something went wrong  <------//
-                //$userPreview.loading.addClass ( 'hidden' );
-                $previewContent.text ( err );
-            } );
-            $userPreview.removeClass ( 'hidden' );
-            //$userPreview.loading.removeClass ( 'hidden' );
-            $userPost.addClass ( 'hidden' );
-            this.value = 'Edit';
-        } else if ( this.value === 'Edit' ) {
-            $userPost.removeClass ( 'hidden' );
-            //$userPreview.loading.addClass ( 'hidden' );
-            $userPreview.addClass ( 'hidden' );
-            this.value = 'Preview';
-        }
-    } );
-    
-// }
-    
-    */
-    
 } ) (
     io ( '/forum' ),
     new Remarkable ( 'full', {
@@ -548,7 +232,8 @@
             
             if ( lang && hljs.getLanguage ( lang ) ) {
                 try {
-                    for ( var i = 0, l = line.length; i < l; i = i + 1 ) {
+                    console.log ( 'with language...' );
+                    for ( let i = 0, l = line.length; i < l; i = i + 1 ) {
                         line [ i ] = '' +
                             '<li data-line="' + padNum ( '' + ( i + 1 ), pad ) + '">' +
                                 hljs.highlight ( lang, line [ i ], true ).value +
@@ -556,22 +241,23 @@
                     }
                     return '<ol>' + line.join ( '' ) + '</ol>';
                 } catch ( err ) {
-                    console.log ( err );
+                    console.error ( err );
                     return err.toString ();
                 }
-            }
-            
-            try {
-                for ( var i = 0, l = line.length; i < l; i = i + 1 ) {
-                    line [ i ] = '' +
-                        '<li data-line="' + padNum ( '' + ( i + 1 ), pad ) + '">' +
-                            hljs.highlightAuto ( line [ i ] ).value +
-                        '</li>';
+            } else {
+                try {
+                    console.log ( 'without language...?' );
+                    for ( let i = 0, l = line.length; i < l; i = i + 1 ) {
+                        line [ i ] = '' +
+                            '<li data-line="' + padNum ( '' + ( i + 1 ), pad ) + '">' +
+                                hljs.highlightAuto ( line [ i ] ).value +
+                            '</li>';
+                    }
+                    return '<ol>' + line.join ( '' ) + '</ol>';
+                } catch (err) {
+                    console.error ( err );
+                    return err.toString ();
                 }
-                return '<ol>' + line.join ( '' ) + '</ol>';
-            } catch (err) {
-                console.log ( err );
-                return err.toString ();
             }
         }
     } ),
@@ -683,50 +369,60 @@
                 sendChat: function ( id, message ) {
                     
                     socket.emit ( 'chat', id, message, function ( id ) {
-                        _data.chatMessage ( id, 'You: ' + message );
+                        _data.chatMessage ( id, 'You', message );
                         _$ui.id.userChatInput.val ( '' );
                     } );
                 },
                 
-                chatMessage: function ( id, message ) {
+                chatMessage: function ( id, name, message ) {
                     var chat = this.rooms [ id ],
-                        $id;
+                        $id = this.$ui.id;
+                    
+                    function wrapMessage ( err, message ) {
+                        if ( err ) {
+                            message = $ ( '<div>' )
+                                .append ( $ ( '<div class="error">' )
+                                    .append ( $ ( '<p>' )
+                                        .append ( document.createTextNode ( err ) )
+                                        .append ( '<br><br>' )
+                                        .append ( document.createTextNode ( message ) )
+                                    )
+                                ).html ();
+                        } else {
+                            message = $ ( '<div>' )
+                                .append ( $ ( '<div class="message">' )
+                                    .append ( $.parseHTML ( message ) )
+                                ).html ();
+                        }
+                        return message;
+                    }
+                    
+                    function logMessage ( message ) {
+                            
+                        if ( typeof message === 'string' ) {
+                            if ( !$id.userChat.hasClass ( 'hidden' ) && $id.userChatRoom.text () === id ) {
+                                $id.userChatContent.append ( $.parseHTML ( message ) );
+                            } else {
+                                $id.userChatBar.find ( '[data-room="'+ id +'"]' ).addClass ( 'notify' );
+                            }
+                        }
+                    }
                     
                     if ( chat ) {
                         
-                        $id = this.$ui.id;
-                        
-                        function logMessage ( message ) {
-                            
-                            if ( typeof message === 'string' ) {
-                                if ( !$id.userChat.hasClass ( 'hidden' ) && $id.userChatRoom.text () === id ) {
-                                    if ( typeof message === 'string' ) {
-                                        // strip out scripts ( not secure, but a start )
-                                        $id.userChatContent.append ( $ ( '<div class="message">' ).append ( $.parseHTML ( message ) ) );
-                                    } else {
-                                        $id.userChatContent.append ( $ ( '<div class="message">' ).text ( message.error + '\n\n' + message.originalMessage ) );
-                                    }
-                                } else {
-                                    $id.userChatBar.find ( '[data-room="'+ id +'"]' ).addClass ( 'notify' );
-                                }
-                            }
-                        }
-                        
                         new Promise ( function ( resolve, reject ) {
                             try {
-                                resolve ( md.render ( message ) );
+                                resolve ( md.render ( name + ': ' + message ) );
                             } catch ( e ) {
                                 reject ( e )
                             }
                         } ). then ( function ( html ) {
-                            chat.messages.push ( html );
-                            logMessage ( html );
+                            var message = wrapMessage ( null, html );
+                            chat.messages.push ( message );
+                            logMessage ( message );
                         } ).catch ( function ( err ) {
-                            console.log ( err );
-                            var message = {
-                                error: id + ': ( failed to render content, original message below - see console )',
-                                originalMessage: message
-                            };
+                            console.error ( `message from "${ name }" failed\n`, err, '\noriginal message: ' + message );
+                            message = wrapMessage ( id + ': ( failed to render content, original message below - see console )', message );
                             chat.messages.push ( message );
                             logMessage ( message );
                         } );
