@@ -30,31 +30,39 @@ module.exports = function ( server, db, io ) {
                         var result = results [ 0 ];
                         
                         if ( !result ) {
-                            socket.emit ( '_error_', null, 'login: the provided user name and password does not match any any of our records' );
+                            socket.emit ( '_error_', null, 'login: the provided user name and password do not match any any of our records' );
                         } else {
-                            console.log ( 'user login:', username );
-                                    
-                            var session = socket.request.session;
-                                    
-                            session.user = {
-                                id: result.id,
-                                name: username,
-                                login: true
-                            };
+                            console.log ( 'user login attempt:', username );
                             
-                            session.save ( function ( err ) {
+                            bcrypt.compare ( password, result.password.toString(), function ( err, passed ) {
                                 if ( err ) {
-                                    socket.emit ( '_error_', null, 'session: could not save user session data, cannot redirect to forum, contact system administrator' );
-                                    console.log ( err );
+                                    socket.emit ( '_error_', null, 'login: something went wrong, contact system administrator' );
+                                } else if ( !passed ) {
+                                    socket.emit ( '_error_', null, 'login: the provided user name and password do not match any any of our records' );
                                 } else {
-                                    // send the user their relevant information along with
-                                    // the signin code they will need to access the site
-                                    var wait = 3000;
-                                    socket.emit ( 'redirect', {
-                                        location: '/forum',
-                                        wait: wait,
-                                        login: true,
-                                        message: 'Success!  Welcome ' + username + ', you\'ll be redirected to the forum automatically in ${wait} seconds.'
+                                    var session = socket.request.session;
+                                    
+                                    session.user = {
+                                        id: result.id,
+                                        name: username,
+                                        login: true
+                                    };
+                                    
+                                    session.save ( function ( err ) {
+                                        if ( err ) {
+                                            socket.emit ( '_error_', null, 'session: could not save user session data, cannot redirect to forum, contact system administrator' );
+                                            console.log ( err );
+                                        } else {
+                                            // send the user their relevant information along with
+                                            // the signin code they will need to access the site
+                                            var wait = 3000;
+                                            socket.emit ( 'redirect', {
+                                                location: '/forum',
+                                                wait: wait,
+                                                login: true,
+                                                message: 'Success!  Welcome ' + username + ', you\'ll be redirected to the forum automatically in ${wait} seconds.'
+                                            } );
+                                        }
                                     } );
                                 }
                             } );

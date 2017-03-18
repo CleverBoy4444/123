@@ -10,11 +10,11 @@ append content
 						#category-view.flex-none.flex-parent.column.hidden
 						#topic-stubs.flex-none.flex-parent.column.hidden
 						#topic-view.flex-none.flex-parent.column.hidden
-					#forum-loading.flex-parent.column.layout-column.hidden
+					#forum-loading.flex-parent.column.layout-column
 						br
 						.flex-none.flex-parent.row.layout-row.flex-center
-							span#more-content.remaining-content.row-item More
-							.loading.row-item.hidden
+							span.link.row-item More
+							.loading.row-item
 		.flex-spaced.row-item.flex-parent.column
 			#forum-input.flex-fill.flex-parent.column
 				#user-post.flex-fill.flex-parent.column
@@ -33,7 +33,7 @@ append content
 						.scroll-wrapper.flex-none.flex-parent.column
 							#preview-content.scroll-content.flex-fill
 							.flex-none.flex-parent.row.layout-row.flex-center
-								.loading.row-item.hidden
+								#preview-loading.loading.row-item.hidden
 				.column-item
 					input(id='preview' class='left', type='button' value='Preview')
 					input(id='submit', class='right', type='button', value='Submit')
@@ -43,19 +43,30 @@ append content
 	#menu
 		.menu-content-wrapper
 			#menu-content.menu-content.hidden
+				br
 				#show-messages.menu-item
 					.check.checked
 					.menu-item-content Show Messages
+				br
+				hr
+				#log-out.menu-item
+					.menu-item-content Log Out
 			#toggle-menu.menu
-	#user-chat.flex-parent.column.layout-column.hidden
-		.column-item
+	#user-chat.flex-parent.column.hidden
+		.flex-none
 			.minimize.right
-			h3#user-chat-room.flex-none.column-item Test Room
-		.column-item.flex-fill.scroll-parent
-			.scroll-wrapper.flex-parent.column
-				#user-chat-content.flex-none
-		br
-		textarea(id='user-chat-input', class='column-item', rows='1', wrap='off', placeholder='Say something!')
+			h5#user-chat-room
+			h3#user-chat-title
+			h6#user-chat-owner
+		.flex-fill.flex-parent.row.column-item.layout-row
+			.flex-spaced.row-item.flex-parent.column
+				.flex-fill.scroll-parent
+					.scroll-wrapper.flex-parent.column
+						#user-chat-content.flex-none
+			.flex-spaced.row-item.flex-parent.column
+				textarea(id='user-chat-input', class='column-item flex-fill', wrap='on', placeholder='Say something!')
+				.column-item.flex-none
+					input(id='user-chat-submit', class='right', type='button', value='Submit')
 	#user-chat-new.flex-parent.column.layout-column.hidden
 		h3#user-chat-with
 		h5#user-chat-topic.flex-none.column-item Title

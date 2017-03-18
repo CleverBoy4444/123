@@ -1,5 +1,5 @@
 append templates
-	template#view-about
+	template#template-about
 		.about
 			.owner
 			.created
@@ -7,19 +7,19 @@ append templates
 			.updated
 		.more.hidden
 	
-	template#view-article
+	template#template-article
 		.article
 			.title
 			.body
 			.about
 			.replies
 	
-	template#view-reply
+	template#template-reply
 		.reply
 			.body
 			.about
 	
-	template#view-chat-min
+	template#template-chat-min
 		.chat-min.flex-none.flex-parent.row.row-item
-			span.room.row-item
-			div(class='close', title='close chat session')
+			span.link.room
+			div(class='close', data-title='close chat session')

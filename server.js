@@ -32,7 +32,7 @@ initDatabase ( db_connection, function callback ( err, result ) {
         process.exit ( 1 );
         return;
     }
-    
+    //Uh luke? You broke it! :(
     db = result;
     
     con.message ( 'creating session store, engine mysql ( session table created for ' + db_connection.database + ')' );
@@ -40,7 +40,7 @@ initDatabase ( db_connection, function callback ( err, result ) {
     var serverSession = session ( {
         secret: 'eon_forum_session',    // server side session secret
         store: sessionStore,
-        resave: true,
+        resave: false,
         saveUninitialized: true
     } );
     
@@ -70,10 +70,17 @@ initDatabase ( db_connection, function callback ( err, result ) {
     app.use ( express.static ( path.join ( __dirname, 'public' ), { redirect : false } ) );
     
     con.message ( 'starting server!' );
-    server.listen( process.env.PORT || 3000, process.env.IP || "0.0.0.0", function () {
-        var addr = server.address();
-        con.message ( 'server ready!' );
-        con.message ( 'application server running at ' + addr.address + ':' + addr.port );
-    });
+    var port = process.env.PORT || 3000,
+        addr = process.env.IP || "0.0.0.0";
+    try {
+        server.listen( port, addr, function () {
+            var addr = server.address();
+            con.message ( 'server ready!' );
+            con.message ( 'application server running at ' + addr.address + ':' + addr.port );
+        } );
+    } catch ( e ) {
+        con.warn ( 'Server may already be running at ' + addr + ':' + port );
+        con.message ( 'Try visiting https://eon-team-signin-ericbalingit.c9users.io' );
+        con.error ( e );
+    }
 } );
-

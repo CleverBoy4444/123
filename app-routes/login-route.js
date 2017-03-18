@@ -19,24 +19,17 @@ module.exports = function ( db, router ) {
         
         console.log ( 'login' );
         
-        var session = req.session;
-        
-        if ( 'user' in session ) {
-            res.redirect ( '/forum' );
-        } else {
-            
-            res.render ( basename,
-                pageParams,
-                function ( err, html ) {
-                    if ( err ) {
-                        console.log ( err );
-                        res.status ( 500 ).send ( 'error: page render failed, contact system administrator [ '+pagename+' ]' );
-                    } else {
-                        res.send ( html );
-                    }
+        res.render ( basename,
+            pageParams,
+            function ( err, html ) {
+                if ( err ) {
+                    console.log ( err );
+                    res.status ( 500 ).send ( 'error: page render failed, contact system administrator [ '+pagename+' ]' );
+                } else {
+                    res.send ( html );
                 }
-            );
-        }
+            }
+        );
     } );
     
     console.log ( 'loaded login route...' );

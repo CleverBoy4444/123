@@ -28,12 +28,31 @@ module.exports = function ( server, db, io ) {
         function ( socket, db ) {
             
             // header is generic and can be anything you want )
-            socket.on ( 'join', function ( room ) {
-                userRooms.join ( socket, room );
+            socket.on ( 'join', function ( room, callback ) {
+                var username = socket.request.session.user.name,
+                    id = userRooms.join ( room, username );
+                
+                socket.join ( id, function () {
+                    socket.to ( id ).emit ( 'joined', id, username );
+                    callback ( id );
+                } );
             } );
             
-            socket.on ( 'leave', function ( room ) {
-                userRooms.leave ( socket, room );
+            socket.on ( 'leave', function ( id, callback ) {
+                var username = socket.request.session.user.name;
+                
+                userRooms.leave ( id, username );
+                
+                socket.leave ( id, function () {
+                    socket.to ( id ).emit ( 'left', username );
+                    callback ( id );
+                } );
+            } );
+            
+            socket.on ( 'chat', function ( id, message, callback ) {
+                var username = socket.request.session.user.name;
+                socket.to ( id ).emit ( 'chatin', id, username, message );
+                callback ( id );
             } );
             
             socket.on ( 'request', function ( forward, data ) {
@@ -49,7 +68,17 @@ module.exports = function ( server, db, io ) {
     
     route.on ( 'close',
         function ( db, socket ) {
-            userRooms.close ( socket );
+            var username = socket.request && socket.request.session.user.name,
+                rooms;
+            
+            if ( username ) {
+                rooms = userRooms.of ( username );
+                userRooms.close ( username );
+                
+                for ( var i in rooms ) {
+                    socket.to ( rooms [ i ] ).emit ( 'left', username );
+                }
+            }
         },
         routeBindErr
     );

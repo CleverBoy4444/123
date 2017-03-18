@@ -12,7 +12,7 @@ function getRoomId ( room ) {
     var namespace;
     
     if ( 'name' in room ) {
-        namespace = [room.name];
+        namespace = [ room.name ];
     } else {
         namespace = [ room.categoryId ];
         if ( 'topicId' in room ) {
@@ -42,36 +42,27 @@ function mapUserRooms ( roomId, username ) {
 // joining allows two way mapping
 // every room can contain multiple users
 // and every user can be in multiple rooms
-function join ( socket, room, err ) {
+function join ( room, username ) {
     
-    var id = getRoomId ( room ),
-        username = socket.request.session.user.name;
+    var id = getRoomId ( room );
     
     mapUserRooms ( id, username );
     
-    socket.join ( id, function () {
-        socket.to ( id ).emit ( 'joined', room, username );
-        socket.emit ( 'join', room );
-    } );
+    return id;
 }
 
-function leave ( socket, room, id ) {
-    
-    id = id || getRoomId ( room );
-    var username = socket.request.session.user.name;
+function leave ( id, username ) {
     
     delete users [ username ].rooms [ id ];
     delete rooms [ id ].users [ username ];
-    
-    socket.leave ( id, function () {
-        socket.to ( id ).emit ( 'left', username );
-    } );
 }
 
-function close ( socket ) {
-    for ( var room in socket.rooms ) {
-        leave ( socket, null, room );
+function close ( username ) {
+    for ( var id in users [ username ].rooms ) {
+        delete rooms [ id ].users [ username ]; 
     }
+    
+    delete users [ username ];
 }
 
 module.exports = {
@@ -94,12 +85,12 @@ Object.defineProperties ( module.exports, {
     },
     "in": {
         value: function ( room ) {
-            return Object.keys ( rooms [ room ] );
+            return Object.keys ( rooms [ room ].users );
         }
     },
     "of": {
         value: function ( user ) {
-            return Object.keys ( users [ user ] );
+            return Object.keys ( users [ user ].rooms );
         }
     }
 } );
