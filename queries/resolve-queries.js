@@ -1,12 +1,13 @@
-var mysql = require ( 'mysql' );
+var mysql = require ( 'mysql' ),
+	db, connection;
 
-function formatQuery ( sql, params, err, then, before ) {
+function formatQuery ( before, sql, params, err, then ) {
 	
-	var args = Array.prototype.slice.call ( arguments );
+	var args = Array.prototype.slice.call ( arguments ),
+		n = typeof args [ 1 ] === 'object' ? 1 : typeof args [ 2 ] === 'object' ? 2 : 0;
 	
-	if ( typeof args [ 1 ] === 'object' ) {
-		sql = args.shift ();
-		args [ 0 ] = mysql.format ( sql, args [ 0 ] );
+	if ( n ) {
+		args [ n - 1 ] = mysql.format ( args [ n - 1 ], args.splice ( n, 1 ) [ 0 ] );
 		return args;
 	}
 	
@@ -35,55 +36,56 @@ function formatQuery ( sql, params, err, then, before ) {
  * resolveQueries ( connection, queries, next );
  */
 
-function unstackQueries ( db, stack, failed, next ) {
+function unstackQueries ( conn, stack, failed, next ) {
 	
 	next = next || failed;
 	
 	var args = formatQuery.apply ( null, stack.shift () ),
-		sql = args [ 0 ],
-		error,
-		callback,
-		before;
+		before, sql, error, callback;
 	
-	if ( args.length === 4 ) {
-		before = args [ 3 ];
-		callback = args [ 2 ];
-		error = args [ 1 ];
+	before = typeof args [ 0 ] === 'function' ? args.shift () : null;
+	
+	if ( typeof args [ 0 ] === 'string' ) {
+		sql = args.shift ();
 	} else {
-		if ( args.length === 3 ) {
-			before = args [ 2 ];
-		}
-		callback = error = args [ 1 ];
+		failed ( new TypeError ( 'cannot perform query on type "' + ( typeof args [ 0 ] ) + '"' ) );
+		return;
 	}
+	
+	error = typeof args [ 0 ] === 'function' ? args.shift () : next;
+	
+	callback = typeof args [ 0 ] === 'function' ? args.shift () : error;
 	
 	if ( sql ) {
 		
-		if ( typeof before === 'string' ) {
-			console.log ( before );
-		} else if ( typeof before === 'function' ) {
-			before ();
+		// before running the individual query [optional], mainly for debugging
+		if ( typeof before === 'function' ) {
+			before ( sql );
 		}
 		
-		db.query ( sql, function ( err, results, field ) {
+		conn.query ( sql, function ( err, results, field ) {
 			// report errors if they occur
 			if ( err ) {
-				db.rollback ( function () {
-					error ( err );
+				conn.rollback ( function () {
+					if ( error === callback ) {
+						failed ( err );
+					} else {
+						error ( err );
+					}
+					console.error ( err );
 				} );
+				
 			} else {
 				
-				if ( error === callback ) {
-					callback ( null, results, field );
-				} else {
-					callback ( results, field );
-				}
+				callback.call ( stack, results, field );
 				
 				if ( stack.length > 0 ) {
-					unstackQueries ( db, stack, failed, next );
+					unstackQueries ( conn, stack, failed, next );
 				} else {
-					db.commit ( function ( err ) {
+					conn.commit ( function ( err ) {
 						if ( err ) {
 							failed ( err );
+							console.log ( err );
 						} else {
 							next ();
 						}
@@ -93,6 +95,9 @@ function unstackQueries ( db, stack, failed, next ) {
 		} );
 	}
 }
+
+
+// transaction class {
 
 var sqlx = function SQLTransaction () {
 	this.stack = [];
@@ -148,19 +153,30 @@ sqlx.describe = function describe ( id ) {
 	return sqlx.transactions [ id ] = new sqlx ();
 };
 
-//sqlx.
+// }
 
-module.exports = function resolveQueries ( db, stack, error, then ) {
+
+exports.init = function init ( database ) {
 	
-	db.beginTransaction ( function ( err ) {
-		if ( err ) {
-			if ( typeof error === 'function' ) {
+	db = database; 
+	
+	return function resolveQueries ( stack, error, then ) {
+		
+		db.getConnection ( function ( err, conn ) {
+			if ( err ) {
 				error ( err );
-			} else if ( typeof then === 'function' ) {
-				then ( err );
+				console.log ( err );
+			} else {
+				conn.beginTransaction ( function ( err ) {
+					if ( err ) {
+						error ( err );
+						console.log ( err )
+					} else {
+						console.log ( 'unstacking' );
+						unstackQueries ( conn, stack, error, then );
+					}
+				} );
 			}
-		} else {
-			unstackQueries ( db, stack, error, then );
-		}
-	} );
+		} );
+	};
 };

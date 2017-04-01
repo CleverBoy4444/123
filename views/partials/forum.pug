@@ -4,21 +4,19 @@ append content
 			.flex-fill.scroll-parent
 				// #content-column.scroll-wrapper
 				.scroll-wrapper
-					| ( Dev ) categories/topics stubs or full posts here with replies at the bottom, i.e. the content of this window will change dynamically depending on user selections and links followed.
 					#forum-content.flex-parent.column
-						#category-stubs.flex-none.flex-parent.column
-						#category-view.flex-none.flex-parent.column.hidden
-						#topic-stubs.flex-none.flex-parent.column.hidden
-						#topic-view.flex-none.flex-parent.column.hidden
-					#forum-loading.flex-parent.column.layout-column
+						#article-stubs.flex-none.flex-parent.column
+						#article-view.flex-none.flex-parent.column.hidden
+					#forum-more.flex-parent.column.layout-column.hidden
 						br
 						.flex-none.flex-parent.row.layout-row.flex-center
 							span.link.row-item More
-							.loading.row-item
+							#forum-loading.loading.row-item.hidden
 		.flex-spaced.row-item.flex-parent.column
 			#forum-input.flex-fill.flex-parent.column
 				#user-post.flex-fill.flex-parent.column
 					h3#input-heading.column-item.center New Category
+					h5#input-title.column-item.hidden
 					#title-section.column-item.flex-parent.column
 						h5.column-item Title
 						textarea(id='user-title', rows='1', wrap='off')
@@ -58,7 +56,7 @@ append content
 			h5#user-chat-room
 			h3#user-chat-title
 			h6#user-chat-owner
-		.flex-fill.flex-parent.row.column-item.layout-row
+		.flex-fill.flex-parent.row.column-item.layout-row.client
 			.flex-spaced.row-item.flex-parent.column
 				.flex-fill.scroll-parent
 					.scroll-wrapper.flex-parent.column

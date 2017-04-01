@@ -18,20 +18,11 @@ var src = 'forum-server:',
 prompt.message = wrn;
 prompt.delimiter = ' ';
 
-exports.prompt = prompt;
-exports.colors = colors;
-
-exports.msg = msg;
-exports.message = function message ( text ) {
-    console.log ( msg + ' ' + text );
-};
-
-exports.wrn = wrn;
-exports.warn = function warn ( text ) {
-    console.log ( wrn + colors.caution ( ' ' + text ) );
-};
-
-exports.err = colors.error ( src );
-exports.error = function error ( text ) {
-    console.log ( err + colors.fail ( ' ' + text ) );
+module.exports = {
+	
+	prompt, colors, msg, wrn, err,
+	
+	message: text => console.log ( msg + ' ' + text ),
+	warn: text => console.log ( wrn + colors.caution ( ' ' + text ) ),
+	error: text => console.log ( err + colors.fail ( ' ' + text ) )
 };

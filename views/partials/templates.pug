@@ -1,25 +1,38 @@
 append templates
 	template#template-about
-		.about
-			.owner
-			.created
-			.edit
-			.updated
-		.more.hidden
+		.owner.link.flex-fill.row-item
+		.edited.flex-none.row-item.hidden
+		.created.flex-none.row-item
 	
 	template#template-article
-		.article
-			.title
-			.body
-			.about
-			.replies
+		.article.flex-none.column-item.flex-parent.column
+			.title.flex-none.column-item
+			.body.flex-none.column-item
+			.about.flex-none.column-item.flex-parent.row
+			.comments.flex-none.column-item.flex-parent.column
+				h5.show-comments.link Show Comments
+				.reply-info.flex-none.column-item.flex-parent.row
+					.comment-count.flex-fill.row-item ( No one has commented yet )
+					.send-reply.flex-none.link Reply to Category
+				.replies.flex-none.column-item.flex-parent.column.hidden
+			.topics.flex-none.column-item.flex-parent.column.hidden
+				h5 Topics for This Category
+				.topic-stubs.flex-none.flex-parent.column
+				.flex-none.flex-parent.row
+					.flex-fill
+					.create-topic.flex-none.link New Topic
+	
+	template#template-stub
+		.stub.flex-none.column-item.flex-parent.column
+			.title.link.flex-none.column-item
+			.about.flex-none.column-item.flex-parent.row
 	
 	template#template-reply
-		.reply
-			.body
-			.about
+		.reply.flex-none.column-item.flex-parent.column
+			.body.flex-none.column-item
+			.about.flex-none-column-item.flex-parent.row
 	
 	template#template-chat-min
-		.chat-min.flex-none.flex-parent.row.row-item
+		.chat-min.flex-none.row-item.flex-parent.row
 			span.link.room
 			div(class='close', data-title='close chat session')

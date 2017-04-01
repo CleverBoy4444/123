@@ -7,6 +7,8 @@ function routeBindErr ( err ) {
 
 module.exports = function ( server, db, io ) {
     
+    console.log ( 'loading signup-io...' );
+    
         // create an io namespace
     var namespace = io.of ( '/signup' ),
         

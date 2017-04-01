@@ -22,11 +22,12 @@ append page-nav
 		li
 			ul.page-nav
 				li #{'Welcome, '}
-					span#user-name #{name}
+					span(id='user-name', data-id=id) #{name}
 					| !
 				li
 					| #{'Chat: '}
 					select#online
+						option ( Forum )
 						if online !== undefined
 							each user in online
 								option(value='#{user.name}') #{user.name}

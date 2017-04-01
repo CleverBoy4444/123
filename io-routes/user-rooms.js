@@ -1,6 +1,4 @@
 
-var resolveQueries = require ( '../queries/resolve-queries.js' );
-var q = require ( '../queries/short-query.js' );
 var users = {},
     rooms = {};
 
@@ -53,14 +51,27 @@ function join ( room, username ) {
 
 function leave ( id, username ) {
     
-    delete users [ username ].rooms [ id ];
-    delete rooms [ id ].users [ username ];
+    if ( users [ username ] ) {
+        if ( users [ username ].rooms ) {
+            delete users [ username ].rooms [ id ];
+        }
+    }
+    
+    if ( rooms [ id ] ) {
+        if ( rooms [ id ].users ) {
+            delete rooms [ id ].users [ username ];
+        }
+    }
 }
 
 function close ( username ) {
-    for ( var id in users [ username ].rooms ) {
-        delete rooms [ id ].users [ username ]; 
-    }
+	if ( users [ username ] ) {
+	    for ( var id in users [ username ].rooms ) {
+	        if ( rooms [ id ].users ) {
+	            delete rooms [ id ].users [ username ];
+	        }
+	    }
+	}
     
     delete users [ username ];
 }
@@ -90,7 +101,7 @@ Object.defineProperties ( module.exports, {
     },
     "of": {
         value: function ( user ) {
-            return Object.keys ( users [ user ].rooms );
+            return users [ user ] ? Object.keys ( users [ user ].rooms ) : {};
         }
     }
 } );

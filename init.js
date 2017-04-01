@@ -1,5 +1,5 @@
 var mysql = require ( 'mysql' ),
-    con = require ('./console/config-console.js' ),
+    con = require ('./console/console.js' ),
     colors = con.colors,
     prompt = con.prompt;
 

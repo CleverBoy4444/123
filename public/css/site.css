@@ -22,6 +22,7 @@ body {
 	right: 0;
 	bottom: 0;
 	left: 0;
+	overflow: hidden;
 }
 
 div, ul, ol {
@@ -82,49 +83,58 @@ h6 { font-size: 0.79em; }
 
 a, .link { color: #abc; text-decoration: underline; }
 
+a, .link, input[type=button] { cursor: pointer; }
+
 a:active, .link:active { color: #def; text-decoration: underline; }
 
 a:visited, .link.visited { color: #789; text-decoration: underline; }
 
+[data-title] {
+	position: relative;
+}
+
 [data-title]:after {
-	content: attr(data-title);
-	padding: 0.25em 1em;
 	position: absolute;
-	margin: -1.5em 0 0 0.5em;
-	border: 1px solid darkgray;
-	background-color: #444;
-	border-radius: 0.25em;
-	display: none;
 }
 
 [data-title]:hover:after {
-	display: inline;
+	white-space: nowrap;
+	padding: 0.25em 1em;
+	/* position: absolute; */
+	/* position: relative; */
+	top: -1.75em;
+	left: 0.5em;
+	border: 1px solid darkgray;
+	background-color: #444;
+	border-radius: 0.25em;
+	content: attr(data-title);
 	opacity: 0;
-	-webkit-animation: 	titleFadeIn 0.5s linear 1s forward;
-	-moz-animation: 	titleFadeIn 0.5s linear 1s forward;
-	-o-animation: 		titleFadeIn 0.5s linear 1s forward;
-	animation: 			titleFadeIn 0.5s linear 1s forward;
+	-webkit-animation: 	0.5s linear 0.5s both titleFadeIn;
+	-moz-animation: 	0.5s linear 0.5s both titleFadeIn;
+	-o-animation: 		0.5s linear 0.5s both titleFadeIn;
+	animation: 			0.5s linear 0.5s both titleFadeIn;
+	font-weight: normal;
 }
 
 @-webkit-keyframes titleFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from 	{ opacity: 0; }
+    to   	{ opacity: 0.75; }
 }
 
 @-moz-keyframes titleFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from 	{ opacity: 0; }
+    to   	{ opacity: 0.75; }
 }
 
 
 @-o-keyframes titleFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+    from 	{ opacity: 0; }
+    to   	{ opacity: 0.75; }
 }
 
 @keyframes titleFadeIn {
-  	from { opacity: 0; }
-    to   { opacity: 1; }
+    from 	{ opacity: 0; }
+    to   	{ opacity: 0.75; }
 }
 
 .flex-parent { display: flex; }
@@ -347,10 +357,53 @@ select {
 	content: '✓';
 }
 
-.about, .reply, .article {
+/*.about, .reply, .article {
 	flex: 0 0 auto;
 	display: flex;
 	flex-direction: column;
+} */
+
+.stub {
+	padding-bottom: 0.5em;
+}
+
+.stub .title {
+	padding: 0.25em;
+	background-color: #222;
+}
+
+.stub .title:hover {
+	background-color: #333;
+}
+
+.topics > h5, .comments > h5 {
+	line-height: 3;
+}
+
+.created:before {
+	content: 'On';
+	margin-right: 0.5em;
+}
+
+.edited:before {
+	content: 'Edited on';
+	margin-right: 0.5em;
+}
+
+.article > .about {
+	line-height: 3;
+	background: #222;
+	padding: 0.25em;
+}
+
+.about:before {
+	content: 'By';
+	margin-left: 1em;
+	margin-right: 0.5em;
+}
+
+.owner, .created, .edited, .about:before {
+	font-size: 0.75em;
 }
 
 .reply:first-child {
@@ -373,7 +426,7 @@ select {
 	background-image: url('data:image/png;base64,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');
 	background-size: 100% 100%;
 	clip-path: url("#clipCircle");
-	webkit-animation: 	1s linear infinite loadingIcon;
+	-webkit-animation: 	1s linear infinite loadingIcon;
 	-moz-animation: 	1s linear infinite loadingIcon;
 	-o-animation: 		1s linear infinite loadingIcon;
 	animation: 			1s linear infinite loadingIcon;
@@ -405,7 +458,6 @@ select {
 	border: 1px outset darkgray;
 	border-radius: 0.3em;
 	line-height: 1;
-	cursor: pointer;
 	padding: 0.25em 0;
 	margin: 0 0.25em 0.25em 0.25em !important;
 }
@@ -542,7 +594,18 @@ pre {
 	color: #cdb; /* cde def bcd  */
 	border-radius: 0.125em;
 	overflow: auto;
-	max-height: 30em;
+	max-height: 20em;
+}
+
+/* padding right fix:
+	
+	http://stackoverflow.com/questions/10054870/when-a-child-element-overflows-horizontally-why-is-the-right-padding-of-the-par#10055302
+	
+	https://www.brunildo.org/test/overscrollback.html
+*/
+pre code {
+	display: inline-block;
+	margin-right: 1em;
 }
 
 code ol {

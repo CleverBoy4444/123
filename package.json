@@ -1,6 +1,6 @@
 {
     "name": "eon-forum-and-chat",
-    "version": "0.7.a",
+    "version": "0.8.0",
     "description": "node, express, socket-io basic live forum for internal use",
     "repository": {
         "type": "git",
