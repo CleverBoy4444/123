@@ -64,6 +64,8 @@ textarea:not([rows]) {
 
 h1, h2, h3, h4, h5, h6 {
 	line-height: 1.5;
+	margin-top: 0.75em;
+	margin-bottom: 0.75em;
 }
 
 /*	Golden Diatonic scale for font headings:
@@ -139,7 +141,11 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 
 .flex-parent { display: flex; }
 
+.flex-left { justify-content: flex-start; }
+
 .flex-center { justify-content: center; }
+
+.flex-right { justify-content: flex-end; }
 
 .column { flex-direction: column; }
 
@@ -274,6 +280,7 @@ select {
 
 #user-chat-input {
 	padding: 1em;
+	white-space: nowrap;
 	overflow: auto;
 }
 
@@ -376,13 +383,26 @@ select {
 	background-color: #333;
 }
 
-.topics > h5, .comments > h5 {
-	line-height: 3;
+.topics > h6, .comments > h6 {
+	line-height: 1;
 }
 
-.created:before {
+.article > .about .created:before {
 	content: 'On';
 	margin-right: 0.5em;
+}
+
+.reply .about .owner {
+	flex: none;
+}
+
+.replies, .topic-stubs {
+	padding-top: 1em;
+}
+
+.comments, .topics {
+	margin-top: 0.25em;
+	border-top: 1px solid darkgray;
 }
 
 .edited:before {
@@ -396,10 +416,22 @@ select {
 	padding: 0.25em;
 }
 
-.about:before {
+.stub .about:before {
 	content: 'By';
 	margin-left: 1em;
 	margin-right: 0.5em;
+}
+
+.reply .about {
+	padding-left: 1em;
+}
+
+.reply .created {
+	padding-left: 1em;
+}
+
+.reply .body {
+	margin-left: 1em;
 }
 
 .owner, .created, .edited, .about:before {

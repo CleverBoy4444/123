@@ -57,43 +57,67 @@
 					
 				} ] },
 			*/
-			articleStubs: {
+			forumContent: {
 				click: [ '.stub', function ( event ) {
 					let $stub = $ ( this ),
-						$title = $stub.find ( '.title' ),
 						$owner = $stub.find ( '.owner' );
-					if ( event.target === this || event.target === $title [ 0 ] ) {
-						console.log ( 'clicked stub' );
+					if ( event.target === $owner [ 0 ] ) {
+						// clicking on owner should show the current location ordered by owner
+					} else {
 						var app = event.data,
 							$id = app.$ui.id,
 							$container = $id.articleView,
-							index = +this.getAttribute ( 'data-index' ),
-							article = app.articles.category [ index ],
-							topics = article.topics,
-							comments = article.posts,
-							location = { to: 'topic', references: { category: article.id } };
+							index = +$stub.data ( 'index' ),
+							id = +$stub.data ( 'id' ),
+							ref = $stub.data ( 'ref' ),
+							article,
+							location,
+							topics,
+							comments,
+							listen;
+						if ( !ref ) {
+							article = app.articles.category [ index ];
+							location = { to: 'topic', references: { category: id } };
+							topics = { from: 'topic', references: location.references, rank: { type: 'topic', category: index } };
+							comments = { from: 'post', references: { category: id, topic: null }, rank: { type: 'post', category: index } };
+							listen = `category_${id}`;
+						} else if ( 'category' in ref ) {
+							article = app.articles.category [ ref.category - 1 ].topics [ index ];
+							location = { to: 'post', references : { category: ref.category, topic: id } };
+							comments = { from: 'post', references: location.references, rank: { type: 'post', category: ref.category - 1, topic: index } };
+							listen = `category_${ref.category}-topic_${article.id}`;
+						}
 						
 						$id.articleStubs.addClass ( 'hidden' );
 						$container.removeClass ( 'hidden' );
+						$container.empty ();
 						
 						app.appendArticles ( $container, $id.templateArticle, [ article ], false );
 						
+						if ( location.to === 'post' ) {
+							$id.titleSection.addClass ( 'hidden' );
+							$container.find ( '.topics' ).addClass ( 'hidden' );
+							$container.find ( '.return' ).text ( 'Back to Category' );
+						} else {
+							$id.titleSection.removeClass ( 'hidden' );
+							$container.find ( '.topics' ).removeClass ( 'hidden' );
+							$container.find ( '.return' ).text ( 'Back to all Categories' );
+						}
+						
 						$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
-						$id.inputHeading.text ( 'New Topic in Category' );
-						$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+						$id.inputHeading.text ( location.to === 'post' ? 'Reply to Topic' : 'New Topic in Category' );
+						$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 						$id.userTitle.focus ();
 						
-						app.listenChannel ( 'category_' + article.id );
-						if ( article.topics.length === 0 ) {
-							app.requestPage ( { from: 'topic', rank: { type: 'topic', category: article.id } } );
+						app.listenChannel ( listen );
+						if ( topics ) {
+							app.requestPage ( topics );
 						}
 						
-						if ( article.posts.length === 0 ) {
-							app.requestPage ( { from: 'post', rank: { type: 'post', category: article.id } } );
+						if ( comments ) {
+							app.requestPage ( comments );
 						}
 						
-					} else if ( event.target === $owner [ 0 ] ) {
-						// clicking on owner should show the current location ordered by owner
 					}
 				} ]
 			},
@@ -176,18 +200,16 @@
 					var app = event.data,
 						$id = app.$ui.id,
 						$forumInput = $id.forumInput,
-						// seems data attributes with valid JSON strings are automatically parsed
 						params = $forumInput.data ( 'location' ),
 						title = $id.userTitle.val (),
 						body = $id.userBody.val ();
 					
-					// which kind of submission?
-					// there will be different submit handlers for different kinds
-					// of submission
 					if ( !title ) {
-						app.errorMessage ( 'Submission must have a title.' );
-						$id.userTitle.focus ();
-						return;
+						if ( params.to !== 'post' ) {
+							app.errorMessage ( 'Submission must have a title.' );
+							$id.userTitle.focus ();
+							return;
+						}
 					}
 					
 					if ( !body ) {
@@ -449,6 +471,22 @@
 					return `${weekday}, ${month} ${day}, ${year} at ${hour}:${minutes}${meridian}`;
 				},
 				
+				shortDate: function ( date ) {
+					let hours = date.getHours (),
+						day = date.getDate (),
+						month = date.getMonth () + 1,
+						year = date.getFullYear (),
+						hour = ( hours % 12 ) || 12,
+						minutes = date.getMinutes (),
+						meridian = hours > 11 ? 'pm' : 'am';
+					
+					minutes = ( '' + minutes ).length < 2 ? '0' + minutes : minutes;
+					month = ( '' + month ).length < 2 ? '0' + month : month;
+					day = ( '' + day ).length < 2 ? '0' + day : day;
+					
+					return `${year}/${month}/${day} ${hour}:${minutes}${meridian}`;
+				},
+				
 				noop: () => {},
 				
 				sortNewest: ( a, b ) => ( a = 'created' in a ? a.created : a.getAttribute ( 'data-created' ) ) >
@@ -528,10 +566,15 @@
 						}
 						
 						if ( 'title' in article ) {
-							article.title = _app.sanitize ( md.render ( '### ' + article.title ) );
+							article.title = _app.sanitize ( md.render ( '#### ' + article.title ) );
 						}
 						
-						article.body = _app.sanitize ( md.render ( article.body ) );
+						if ( 'posts' in article ) {
+							article.body = _app.sanitize ( md.render ( article.body ) );
+						} else {
+							article.body = _app.sanitize ( md.render ( article.body + ` — <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
+						}
+						
 						article.index = from + i;
 					}
 					
@@ -542,10 +585,22 @@
 					let $id = _app.$ui.id,
 						article,
 						$tempView,
-						$aboutTemplate = $id.templateAbout;
+						$aboutTemplate = $id.templateAbout,
+						id,
+						received,
+						total;
 					
 					if ( articles.length > 0 ) {
+						let isHidden = $container.hasClass ( 'hidden' );
 						$container.addClass ( 'hidden' );
+						
+						received = $container.data ( 'received' );
+						total = $container.data ( 'total' );
+						id = $container.attr ( 'id' );
+						
+						if ( !id ) {
+							
+						}
 						
 						for ( let i = 0, l = articles.length; i < l; i = i + 1 ) {
 							article = articles [ i ];
@@ -559,7 +614,6 @@
 								$title = $tempView.find ( '.title' ),
 								$body = $tempView.find ( '.body' ),
 								{ category, topic, chat } = article,
-								ref = { category, topic, chat }, from,
 								title = stub ? $ ( article.title ).html() : article.title;
 							
 							$tempView.attr ( { 'data-id': article.id, 'data-created': article.created, 'data-index': article.index } );
@@ -579,10 +633,15 @@
 								$edited.text ( '' ).addClass ( 'hidden' );
 							}
 							
-							for ( from in ref ) {
-								if ( ref [ from ] ) {
-									$tempView.attr ( 'data-ref-' + from, ref [ from ] );
+							let ref = {};
+							for ( let name of [ 'category', 'topic', 'chat' ] ) {
+								if ( name in article ) {
+									ref [ name ] = article [ name ];
 								}
+							}
+							
+							if ( Object.keys ( ref ).length > 0 ) {
+								$tempView.attr ( 'data-ref', JSON.stringify ( ref ) );
 							}
 							
 							$container.append ( $tempView );
@@ -596,8 +655,10 @@
 							} );
 						}
 						
-						$container.removeClass ( 'hidden' );
-						$container.parent ().removeClass ( 'hidden' );
+						if ( !isHidden ) {
+							$container.removeClass ( 'hidden' );
+						}
+						//$container.parent ().removeClass ( 'hidden' );
 					}
 				},
 				
@@ -670,6 +731,7 @@
 							collection.total = res.total;
 							
 							if ( container ) {
+								container.attr ( { 'data-received': res.timestamp, 'data-total': res.total } );
 								_app.appendArticles ( container, template, articles, true, sort );
 							} else {
 								$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
@@ -693,9 +755,11 @@
 							_app.errorMessage ( 'submission request failed ( see console ), please contact system administrator' );
 							console.log ( err );
 						} else {
+							console.log ( 'article submitted' );
+							console.log ( 'ranking:', res.rank );
 							let $id = _app.$ui.id,
 								room = _app.listening,
-								{ collection, extend, container } = _app.getPresentationLayer ( res.rank, room ),
+								{ collection, extend, container, template } = _app.getPresentationLayer ( res.rank, room ),
 								articles = [ res ],
 								sortBy = order [ 0 ].toUpperCase () + order.slice ( 1 ),
 								sort = _app [ 'sort' + sortBy ];
@@ -712,7 +776,7 @@
 								collection.received = res.created;
 								
 								if ( container ) {
-									_app.appendArticles ( container, articles, sort );
+									_app.appendArticles ( container, template, articles, sort );
 								} else {
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 								}

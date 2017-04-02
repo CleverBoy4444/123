@@ -10,17 +10,24 @@ append templates
 			.body.flex-none.column-item
 			.about.flex-none.column-item.flex-parent.row
 			.comments.flex-none.column-item.flex-parent.column
-				h5.show-comments.link Show Comments
-				.reply-info.flex-none.column-item.flex-parent.row
-					.comment-count.flex-fill.row-item ( No one has commented yet )
-					.send-reply.flex-none.link Reply to Category
-				.replies.flex-none.column-item.flex-parent.column.hidden
-			.topics.flex-none.column-item.flex-parent.column.hidden
-				h5 Topics for This Category
-				.topic-stubs.flex-none.flex-parent.column
 				.flex-none.flex-parent.row
+					h6.show-comments.link Show Comments
 					.flex-fill
-					.create-topic.flex-none.link New Topic
+					h6.return.link Return to Category
+				.replies.flex-none.column-item.flex-parent.column.hidden
+				.flex-right.flex-parent.row.hidden
+					.more-comments.flex-fill.flex-center.flex-parent.row.hidden
+						span.link More Comments
+						.loading.hidden
+					.reply.flex-none.link Reply to Category
+			.topics.flex-none.column-item.flex-parent.column
+				h6.show-topics.link Hide Topics for This Category
+				.topic-stubs.flex-none.column-item.flex-parent.column
+				.flex-right.flex-parent.row
+					.flex-fill.flex-center.flex-parent.row
+						span.link More Topics
+						.loading.hidden
+					.new-topic.flex-none.link New Topic
 	
 	template#template-stub
 		.stub.flex-none.column-item.flex-parent.column
@@ -28,9 +35,9 @@ append templates
 			.about.flex-none.column-item.flex-parent.row
 	
 	template#template-reply
-		.reply.flex-none.column-item.flex-parent.column
+		.reply.flex-none.flex-parent.column
+			// .about.flex-none-column-item.flex-parent.row
 			.body.flex-none.column-item
-			.about.flex-none-column-item.flex-parent.row
 	
 	template#template-chat-min
 		.chat-min.flex-none.row-item.flex-parent.row

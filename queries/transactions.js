@@ -46,7 +46,7 @@ function pageQuery ( data, callback ) {
 	if ( ref ) {
 		for ( key in ref ) {
 			if ( key in esc ) {
-				constraints.push ( `${ key } = ${ esc [ key ] }` );
+				constraints.push ( `${ key } ${ esc [ key ] === 'NULL' ? 'is' : '='} ${ esc [ key ] }` );
 			}
 		}
 		
@@ -186,7 +186,8 @@ function submitQuery ( data, callback ) {
 					
 					let where = `where category = ${esc.category}`;
 					
-					rank.category = esc.category;
+					// db indices start at 1
+					rank.category = esc.category - 1;
 					
 					if ( 'topic' in ref ) {
 						// only posts have both a category and a topic

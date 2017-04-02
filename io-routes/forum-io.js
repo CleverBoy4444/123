@@ -115,11 +115,10 @@ module.exports = function ( server, db, io ) {
 								callback ( err );
 							} else {
 								
-								article.userid = data.userid;
 								article.username = data.username;
 								
 								let { id, rank, created, edited } = article,
-									res = { id, userid: data.userid, rank, room: data.room, created, edited };
+									res = { id, owner: article.owner, username: article.username, rank, room: data.room, created, edited };
 								
 								ref && ( res.references = ref );
 								
