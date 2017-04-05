@@ -41,22 +41,6 @@
 		
 		// ui handles by id
 		{
-			/*
-			forumContent: {
-				click: [ '[id$="stubs"]', function ( event ) {
-					var $ui = event.data.$ui,
-						$forumContent = $ui.forumContent,
-						view = ( event.target.id ).split ( '-' ) [ 0 ],
-						$view = $ui [ view + 'View'];
-					
-					$forumContent.find ( '>[id]' ).addClass ( 'hidden' );
-					
-					if ( view === 'category' ) {        // this is a category stub, requesting to view the category
-					} else {                            // this is a topic stub, requesting to view the topic
-					}
-					
-				} ] },
-			*/
 			forumContent: {
 				click: [ '.stub', function ( event ) {
 					let $stub = $ ( this ),
@@ -77,8 +61,8 @@
 							listen;
 						if ( !ref ) {
 							article = app.articles.category [ index ];
-							location = { to: 'topic', references: { category: id } };
-							topics = { from: 'topic', references: location.references, rank: { type: 'topic', category: index } };
+							location = { to: 'post', references: { category: id } };
+							// topics = { from: 'topic', references: location.references, rank: { type: 'topic', category: index } };
 							comments = { from: 'post', references: { category: id, topic: null }, rank: { type: 'post', category: index } };
 							listen = `category_${id}`;
 						} else if ( 'category' in ref ) {
@@ -94,18 +78,18 @@
 						
 						app.appendArticles ( $container, $id.templateArticle, [ article ], false );
 						
-						if ( location.to === 'post' ) {
-							$id.titleSection.addClass ( 'hidden' );
-							$container.find ( '.topics' ).addClass ( 'hidden' );
+						$id.titleSection.addClass ( 'hidden' );
+						
+						if ( 'topic' in location.references ) {
+							// $container.find ( '.topics' ).addClass ( 'hidden' );
 							$container.find ( '.return' ).text ( 'Back to Category' );
 						} else {
-							$id.titleSection.removeClass ( 'hidden' );
-							$container.find ( '.topics' ).removeClass ( 'hidden' );
+							// $container.find ( '.topics' ).removeClass ( 'hidden' );
 							$container.find ( '.return' ).text ( 'Back to all Categories' );
 						}
 						
 						$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
-						$id.inputHeading.text ( location.to === 'post' ? 'Reply to Topic' : 'New Topic in Category' );
+						$id.inputHeading.text ( 'topic' in location.references ? 'Reply to Topic' : 'Reply to Category' );
 						$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 						$id.userTitle.focus ();
 						
@@ -119,7 +103,19 @@
 						}
 						
 					}
-				} ]
+				}, '.show-comments', function ( event ) {
+					let $showComments = $ ( this ),
+						$replies = $showComments.parents ( '.comments' ).find ( '.replies' ),
+						total = $replies.data ( 'total' );
+					
+					if ( $replies.hasClass ( 'hidden' ) ) {
+						$showComments.text ( 'Hide Comments' );
+						$replies.removeClass ( 'hidden' );
+					} else {
+						$showComments.text ( 'Show Comments' + ( total ? ` ( ${total} )` : '' ) );
+						$replies.addClass ( 'hidden' );
+					}
+				}  ]
 			},
 			
 			menu: {
@@ -218,10 +214,10 @@
 						return;
 					}
 					
-					params.title = title;
+					title && ( params.title = title );
 					params.body = body;
 					// TODO: configure based on UI
-					params.order = 'newest';
+					params.order = 'oldest';
 					
 					event.data.submitArticle ( params );
 				}
@@ -572,7 +568,7 @@
 						if ( 'posts' in article ) {
 							article.body = _app.sanitize ( md.render ( article.body ) );
 						} else {
-							article.body = _app.sanitize ( md.render ( article.body + ` — <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
+							article.body = _app.sanitize ( md.render ( article.body.replace ( '\n', '\\n' ) + `  —  <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
 						}
 						
 						article.index = from + i;
@@ -686,12 +682,11 @@
 						if ( type === 'category' ) {
 							collection = _articles.category;
 							extend = { topics: [], posts: [] };
-							container = $id.articleStubs;
 						} else if ( type === 'topic' ) {
 							collection = _articles.category [ category ].topics;
 							extend = { posts: [] };
-							container = $id.articleView.find ( '.topic-stubs' );
 						}
+						container = $id.articleStubs;
 						template = $id.templateStub;
 					}
 					
@@ -735,6 +730,12 @@
 								_app.appendArticles ( container, template, articles, true, sort );
 							} else {
 								$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
+							}
+							
+							if ( container.hasClass ( 'replies' ) ) {
+								if ( container.hasClass ( 'hidden' ) ) {
+									container.parent ().find ( '.show-comments' ).text ( `Show Comments ( ${res.total} )` );
+								}
 							}
 							
 							if ( res.total > collection.length ) {

@@ -56,19 +56,19 @@ function pageQuery ( data, callback ) {
 	console.log ( 'processing page request...' );
 	processRequest (
 		[
-			( sql ) => { console.log ( 'page:', sql ); },
+			function ( sql ) { console.log ( 'page:', sql ); },
 			`select ${table}.*, user.name as username from ${table} inner join user on ${table}.owner = user.id ${where}limit ${index}, ${limit}`,
 			function ( results ) { articles = results; },
 		], [
-			( sql ) => { console.log ( 'count:', sql ); },
+			function ( sql ) { console.log ( 'count:', sql ); },
 			`select count(*) as count from ${table}${where}`,
 			function ( results ) { total = results [ 0 ].count; },
 		], [
-			( sql ) => { console.log ( 'timestamp:', sql ); },
-			'select current_timestamp as timestamp',
+			function ( sql ) { console.log ( 'timestamp:', sql ); },
+			'select current_timestamp ( 6 ) as timestamp',
 			function ( results ) { timestamp = results [ 0 ].timestamp; },
 		],
-		err => { callback ( err, { articles, total, timestamp } ); }
+		function ( err ) { callback ( err, { articles, total, timestamp } ); }
 	);
 }
 
@@ -116,19 +116,19 @@ function updateQuery ( data, callback ) {
 	console.log ( 'processing update request...' );
 	processRequest (
 		[
-			( sql ) => { console.log ( 'update:', sql ); },
+			function ( sql ) { console.log ( 'update:', sql ); },
 			`select * from ${table} ${where} limit ${index}, ${limit}`,
 			function ( results ) { articles = results; }
 		], [
-			( sql ) => { console.log ( 'count:', sql ); },
+			function ( sql ) { console.log ( 'count:', sql ); },
 			`select count(*) as count from ${table} ${where}`,
 			function ( results ) { total = results [ 0 ].count; }
 		], [
-			( sql ) => { console.log ( 'timestamp:', sql ); },
-			'select current_timestamp as timestamp',
+			function ( sql ) { console.log ( 'timestamp:', sql ); },
+			'select current_timestamp ( 6 ) as timestamp',
 			function ( results ) { timestamp = results [ 0 ].timestamp; }
 		],
-		err => { callback ( err, { articles, total, timestamp } ); }
+		function ( err ) { callback ( err, { articles, total, timestamp } ); }
 	);
 }
 
@@ -136,7 +136,7 @@ function submitQuery ( data, callback ) {
 	
 	let {
 		to: table,
-		references: ref = {},
+		references: ref,
 		userid: owner,
 		title,
 		body
@@ -164,75 +164,79 @@ function submitQuery ( data, callback ) {
 	}
 	
 	processRequest( [
-		() => { console.log ( 'insert' ); },
+		function () { console.log ( 'insert' ); },
 		`insert into ${table} set ?`, dataset,
 		
 		// called in the context of the transaction stack
 		// so pushing onto this is inserting queries into the transaction
 		function ( results ) {
-			let id = results.insertId;
+			let id = results.insertId,
+				select = `select count(*) as rank from ${table}`;
 			
 			if ( 'chat' in ref ) {
-				// it's a post, no need to check for category or topic
 				this.push ( [
-					() => { console.log ( 'chat ranking' ); },
-					`select count(*) as rank from ${table} where chat = ${esc.chat} and id < ${id}`,
+					function () { console.log ( 'chat ranking' ); },
+					`${select} where chat < ${esc.chat}`,
+					function ( results ) { rank.chat = results [ 0 ].rank; }
+				], [
+					function () { console.log ( 'post ranking' ); },
+					`${select} where chat = ${esc.chat} and id < ${id}`,
 					function ( results ) { rank.post = results [ 0 ].rank; }
 				] );
 			} else {
-				// may be a post or a topic
-				let select = `select count(*) as rank from ${table}`;
-				if ( 'category' in ref ) {
-					
-					let where = `where category = ${esc.category}`;
-					
-					// db indices start at 1
-					rank.category = esc.category - 1;
-					
+				
+				// categories are not relative so their ranking is always given as id - 1
+				rank.category = esc.category - 1;
+				
+				if ( table === '`post`' ) {
 					if ( 'topic' in ref ) {
-						// only posts have both a category and a topic
 						this.push ( [
-							() => { console.log ( 'topic ranking' ); },
-							`${select} ${where} and topic < ${esc.topic}`,
+							function () { console.log ( 'topic ranking' ); },
+							`${select} where category = ${esc.category} and topic < ${esc.topic}`,
 							function ( results ) { rank.topic = results [ 0 ].rank; }
 						], [
-							() => { console.log ( 'post ranking' ); },
-							`${select} ${where} and topic = ${esc.topic} and id < ${id}`,
+							function () { console.log ( 'post ranking' ); },
+							`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
 							function ( results ) { rank.post = results [ 0 ].rank; }
 						] );
-						
 					} else {
-						// must be a topic
 						this.push ( [
-							() => { console.log ( 'post ranking' ); },
-							`${select} ${where} and id < ${id}`,
-							function ( results ) { rank.topic = results [ 0 ].rank; }
+							function () { console.log ( 'post ranking' ); },
+							`${select} where category = ${esc.category} and id < ${id}`,
+							function ( results ) { rank.post = results [ 0 ].rank; }
 						] );
 					}
+				} else if ( table === '`topic`' ) {
+					this.push ( [
+						function () { console.log ( 'topic ranking' ); },
+						`${select} where category = ${esc.category} and id < ${id}`,
+						function ( results ) { rank.topic = results [ 0 ].rank; }
+					] );
+				} else if ( table === '`chat`') {
+					this.push ( [
+						function () { console.log ( 'chat ranking' ); },
+						`${select} where chat < ${id}`,
+						function ( results ) { rank.chat = results [ 0 ].rank; }
+					] );
 				} else {
-					// may be a chat or a category
-					if ( 'chat' === rank.type ) {
-						rank.chat = id;
-					} else {
-						// must be a category
-						rank.category = id;
-					}
+					callback ( `cannot process submission to "${table}"` );
 				}
-				
-				this.push ( [
-					() => { console.log ( 'retrieve' ); },
-					`select * from ${table} where id = ${id}`,
-					function ( results ) {
-						article = results [ 0 ];
-						article.rank = rank;
-					}
-				] );
-			} } ],
+			}
+			
+			this.push ( [
+				function () { console.log ( 'retrieve' ); },
+				`select * from ${table} where id = ${id}`,
+				function ( results ) {
+					article = results [ 0 ];
+					article.rank = rank;
+				}
+			] );
+		} ],
 		
 		// this must be in place when processRequest is called
 		// it will be popped off the transaction stack before
 		// the first result handle is executed
-		err => { callback ( err, article ); }
+		function ( err ) { callback ( err, article ); }
 	);
 }
 

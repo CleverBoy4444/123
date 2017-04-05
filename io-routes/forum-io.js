@@ -128,7 +128,7 @@ module.exports = function ( server, db, io ) {
 								// submission should be heard and fetched in seconds,
 								// but in case anyone misses the call the submission is
 								// kept for one minute then discarded
-								setTimeout ( ( id => () => delete submissions [ id ] ) ( id ), 60000 );
+								setTimeout ( ( function ( id ) { return function () { delete submissions [ id ]; }; } ) ( id ), 60000 );
 								
 								// reply with the timestamp and location of the new article
 								callback ( null, res );

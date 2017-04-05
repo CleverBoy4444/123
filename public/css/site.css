@@ -1,7 +1,7 @@
 /*#region main layout */
 
 /* reset, hr margin: 0 fix for flexbox */
-code, body, div, form, h1, h2, h3, h4, h5, hr, html, input, li, ol, option, pre, select, table, textarea, ul {
+code, body, div, form, h1, h2, h3, h4, h5, h6, hr, html, input, li, ol, option, p, pre, select, table, textarea, ul {
 	margin: 0;
 	padding: 0;
 }
@@ -56,16 +56,18 @@ textarea, input[type=text], input[type=password] {
 	border: 1px inset darkgray;
 	color: inherit;
 	resize: none;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 textarea:not([rows]) {
 	line-height: 1.5;
+	white-space: pre-wrap;
+	word-wrap: break-word;
 }
 
 h1, h2, h3, h4, h5, h6 {
 	line-height: 1.5;
-	margin-top: 0.75em;
-	margin-bottom: 0.75em;
 }
 
 /*	Golden Diatonic scale for font headings:
@@ -145,6 +147,8 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 
 .flex-center { justify-content: center; }
 
+.flex-middle { align-items: center; }
+
 .flex-right { justify-content: flex-end; }
 
 .column { flex-direction: column; }
@@ -160,6 +164,8 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 .flex-none { flex: 0 0 auto; }
 
 .flex-wrap { flex-wrap: wrap; }
+
+.flex-nowrap { flex-wrap: nowrap; }
 
 .layout-column { padding: 0.25em 0.5em; }
 
@@ -191,7 +197,9 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 	margin-left: 0.5em;
 }
 
-.scroll-parent { position: relative; overflow: hidden; border: 1px inset darkgray; }
+.scroll-parent { position: relative; overflow: hidden; }
+
+.inset { border: 1px inset darkgray; }
 
 .scroll-wrapper {
 	position: absolute;
@@ -233,6 +241,7 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 .page-nav li {
 	display: table-cell;
 	padding: 0 0.5em;
+	vertical-align: middle;
 }
 
 .page-nav li:first-child {
@@ -271,23 +280,18 @@ select {
 	padding: 1em;
 }
 
-#user-title, #user-chat-new-title {
+#user-title, #user-chat-new-title, #search {
 	padding-left: 1em;
 	padding-right: 1em;
-	white-space: nowrap;
-	overflow: hidden;
 }
 
 #user-chat-input {
 	padding: 1em;
-	white-space: nowrap;
-	overflow: auto;
 }
 
 #user-body {
 	line-height: 1.5em;
 	padding: 1em;
-	white-space: nowrap;
 	overflow: auto;
 }
 
@@ -370,6 +374,15 @@ select {
 	flex-direction: column;
 } */
 
+.article p {
+	margin: 0.75em 0;
+}
+
+.reply p {
+	margin: 0.25em 0;
+	white-space: pre-wrap;
+}
+
 .stub {
 	padding-bottom: 0.5em;
 }
@@ -383,26 +396,9 @@ select {
 	background-color: #333;
 }
 
-.topics > h6, .comments > h6 {
-	line-height: 1;
-}
-
 .article > .about .created:before {
 	content: 'On';
 	margin-right: 0.5em;
-}
-
-.reply .about .owner {
-	flex: none;
-}
-
-.replies, .topic-stubs {
-	padding-top: 1em;
-}
-
-.comments, .topics {
-	margin-top: 0.25em;
-	border-top: 1px solid darkgray;
 }
 
 .edited:before {
@@ -422,23 +418,20 @@ select {
 	margin-right: 0.5em;
 }
 
-.reply .about {
-	padding-left: 1em;
-}
-
-.reply .created {
-	padding-left: 1em;
-}
-
 .reply .body {
 	margin-left: 1em;
 }
 
-.owner, .created, .edited, .about:before {
-	font-size: 0.75em;
+.reply .owner {
+	margin-right: 1em;
+}
+
+.reply .about .owner {
+	flex: none;
 }
 
 .reply:first-child {
+	margin-top: 0.5em;
 	margin-bottom: 0.25em;
 }
 
@@ -449,6 +442,18 @@ select {
 .reply:not(:first-child):not(:last-child) {
 	margin-top: 0.25em;
 	margin-bottom: 0.25em;
+}
+
+.replies {
+	border-top: 1px solid darkgray;
+}
+
+.comments > .row {
+	padding: 0.5em 0;
+}
+
+.owner, .created, .edited, .about:before {
+	font-size: 0.75em;
 }
 
 .loading {

@@ -1,7 +1,7 @@
 append content
 	.flex-fill.flex-parent.row.column-item.layout-row
 		.flex-spaced.row-item.flex-parent.column
-			.flex-fill.scroll-parent
+			.flex-fill.scroll-parent.inset
 				// #content-column.scroll-wrapper
 				.scroll-wrapper
 					#forum-content.flex-parent.column
@@ -14,7 +14,7 @@ append content
 							#forum-loading.loading.row-item.hidden
 		.flex-spaced.row-item.flex-parent.column
 			#forum-input.flex-fill.flex-parent.column
-				#user-post.flex-fill.flex-parent.column
+				#user-post.flex-fill.flex-parent.column.column-item
 					h3#input-heading.column-item.center New Category
 					h5#input-title.column-item.hidden
 					#title-section.column-item.flex-parent.column
@@ -24,7 +24,7 @@ append content
 						h5#content-heading Description
 					.column-item.flex-fill.flex-parent.column
 						textarea#user-body.flex-fill
-				#user-preview.flex-fill.flex-parent.column.hidden
+				#user-preview.flex-fill.flex-parent.column.column-item.hidden
 					h3.column-item.center Preview Content
 					// #preview-parent.column-item.flex-fill.scroll-parent
 					.column-item.flex-fill.scroll-parent
@@ -62,7 +62,7 @@ append content
 					.scroll-wrapper.flex-parent.column
 						#user-chat-content.flex-none
 			.flex-spaced.row-item.flex-parent.column
-				textarea(id='user-chat-input', class='column-item flex-fill', wrap='on', placeholder='Say something!')
+				textarea(id='user-chat-input', class='column-item flex-fill', placeholder='Say something!')
 				.column-item.flex-none
 					input(id='user-chat-submit', class='right', type='button', value='Submit')
 	#user-chat-new.flex-parent.column.layout-column.hidden
