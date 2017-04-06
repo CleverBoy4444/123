@@ -831,7 +831,7 @@
 							// then rendering and displaying of the submission
 							// stub will be deferred until it comes up in
 							// a later page fetch
-							if ( res.rank [ res.rank.type ] <= collection.length ) {
+							if ( ! ( res.rank.type in res.rank ) || res.rank [ res.rank.type ] <= collection.length ) {
 								'title' in params && ( res.title = params.title );
 								res.body = params.body;
 								
@@ -845,7 +845,8 @@
 								let total = collection.total = collection.total + 1;
 								
 								if ( container ) {
-									_app.appendArticles ( container, template, articles, sort );
+									let stub = container = _app.$ui.id.articleStubs;
+									_app.appendArticles ( container, template, articles, stub, sort );
 									container.attr ( 'data-total', total );
 									if ( container.hasClass ( 'replies' ) && container.hasClass ( 'hidden' ) ) {
 										container.prev ().find ( '.show-comments' ).text ( `Show Comments ( ${total} )` )

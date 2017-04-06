@@ -173,54 +173,56 @@ function submitQuery ( data, callback ) {
 			let id = results.insertId,
 				select = `select count(*) as rank from ${table}`;
 			
-			if ( 'chat' in ref ) {
-				this.push ( [
-					function () { console.log ( 'chat ranking' ); },
-					`select count(*) as rank from chat where id < ${esc.chat}`,
-					function ( results ) { rank.chat = results [ 0 ].rank; }
-				], [
-					function () { console.log ( 'post ranking' ); },
-					`${select} where chat = ${esc.chat} and id < ${id}`,
-					function ( results ) { rank.post = results [ 0 ].rank; }
-				] );
-			} else {
-				
-				// categories are not relative so their ranking is always given as id - 1
-				rank.category = esc.category - 1;
-				
-				if ( table === '`post`' ) {
-					if ( 'topic' in ref ) {
-						console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
-						this.push ( [
-							function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
-							`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
-							function ( results ) { rank.topic = results [ 0 ].rank; }
-						], [
-							function ( sql ) { console.log ( 'post ranking sql:', sql ); },
-							`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
-							function ( results ) { rank.post = results [ 0 ].rank; }
-						] );
-					} else {
-						this.push ( [
-							function () { console.log ( 'post ranking' ); },
-							`${select} where category = ${esc.category} and id < ${id}`,
-							function ( results ) { rank.post = results [ 0 ].rank; }
-						] );
-					}
-				} else if ( table === '`topic`' ) {
-					this.push ( [
-						function () { console.log ( 'topic ranking' ); },
-						`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
-						function ( results ) { rank.topic = results [ 0 ].rank; }
-					] );
-				} else if ( table === '`chat`') {
+			if ( ref ) {
+				if ( 'chat' in ref ) {
 					this.push ( [
 						function () { console.log ( 'chat ranking' ); },
-						`select count(*) as rank from chat where id < ${id}`,
+						`select count(*) as rank from chat where id < ${esc.chat}`,
 						function ( results ) { rank.chat = results [ 0 ].rank; }
+					], [
+						function () { console.log ( 'post ranking' ); },
+						`${select} where chat = ${esc.chat} and id < ${id}`,
+						function ( results ) { rank.post = results [ 0 ].rank; }
 					] );
 				} else {
-					callback ( `cannot process submission to "${table}"` );
+					
+					// categories are not relative so their ranking is always given as id - 1
+					rank.category = esc.category - 1;
+					
+					if ( table === '`post`' ) {
+						if ( 'topic' in ref ) {
+							console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
+							this.push ( [
+								function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
+								`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
+								function ( results ) { rank.topic = results [ 0 ].rank; }
+							], [
+								function ( sql ) { console.log ( 'post ranking sql:', sql ); },
+								`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
+								function ( results ) { rank.post = results [ 0 ].rank; }
+							] );
+						} else {
+							this.push ( [
+								function ( sql ) { console.log ( 'post ranking sql:', sql ); },
+								`${select} where category = ${esc.category} and topic is null and id < ${id}`,
+								function ( results ) { rank.post = results [ 0 ].rank; }
+							] );
+						}
+					} else if ( table === '`topic`' ) {
+						this.push ( [
+							function () { console.log ( 'topic ranking' ); },
+							`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
+							function ( results ) { rank.topic = results [ 0 ].rank; }
+						] );
+					} else if ( table === '`chat`') {
+						this.push ( [
+							function () { console.log ( 'chat ranking' ); },
+							`select count(*) as rank from chat where id < ${id}`,
+							function ( results ) { rank.chat = results [ 0 ].rank; }
+						] );
+					} else {
+						callback ( `cannot process submission to "${table}"` );
+					}
 				}
 			}
 			
