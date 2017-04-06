@@ -176,7 +176,7 @@ function submitQuery ( data, callback ) {
 			if ( 'chat' in ref ) {
 				this.push ( [
 					function () { console.log ( 'chat ranking' ); },
-					`${select} where chat < ${esc.chat}`,
+					`select count(*) as rank from chat where id < ${esc.chat}`,
 					function ( results ) { rank.chat = results [ 0 ].rank; }
 				], [
 					function () { console.log ( 'post ranking' ); },
@@ -190,12 +190,13 @@ function submitQuery ( data, callback ) {
 				
 				if ( table === '`post`' ) {
 					if ( 'topic' in ref ) {
+						console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
 						this.push ( [
-							function () { console.log ( 'topic ranking' ); },
-							`${select} where category = ${esc.category} and topic < ${esc.topic}`,
+							function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
+							`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
 							function ( results ) { rank.topic = results [ 0 ].rank; }
 						], [
-							function () { console.log ( 'post ranking' ); },
+							function ( sql ) { console.log ( 'post ranking sql:', sql ); },
 							`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
 							function ( results ) { rank.post = results [ 0 ].rank; }
 						] );
@@ -209,13 +210,13 @@ function submitQuery ( data, callback ) {
 				} else if ( table === '`topic`' ) {
 					this.push ( [
 						function () { console.log ( 'topic ranking' ); },
-						`${select} where category = ${esc.category} and id < ${id}`,
+						`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
 						function ( results ) { rank.topic = results [ 0 ].rank; }
 					] );
 				} else if ( table === '`chat`') {
 					this.push ( [
 						function () { console.log ( 'chat ranking' ); },
-						`${select} where chat < ${id}`,
+						`select count(*) as rank from chat where id < ${id}`,
 						function ( results ) { rank.chat = results [ 0 ].rank; }
 					] );
 				} else {

@@ -1,5 +1,5 @@
 append page-nav
-	.page-nav.column-item.flex-middle.flex-parent.column
+	#page-nav.column-item.flex-parent.column
 		.flex-parent.row.layout-column.column-item
 			.flex-spaced.row-item.flex-parent.column
 				.flex-none.flex-middle.flex-parent.row
@@ -12,7 +12,8 @@ append page-nav
 			.flex-spaced.row-item.flex-parent.column
 				.flex-none.flex-middle.flex-parent.row
 					span.flex-none.row-item #{'Welcome, '}
-						span(id='user-name', data-id=id) #{name}!
+						span(id='user-name', class='link', data-id=id) #{name}
+						span !
 					.flex-fill
 					span.flex-none.row-item #{'Chat: '}
 						select#online
