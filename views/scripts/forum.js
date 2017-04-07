@@ -47,10 +47,10 @@
 						app = event.data,
 						$id = app.$ui.id,
 						$container = $id.articleView,
-						index = Number ( $stub.data ( 'index' ) ),
-						id = Number ( $stub.data ( 'id' ) ),
-						ref = $stub.data ( 'ref' ),
-						rank = $stub.data ( 'rank' ),
+						index = Number ( $stub.attr ( 'data-index' ) ),
+						id = Number ( $stub.attr ( 'data-id' ) ),
+						ref = JSON.parse ( $stub.attr ( 'data-ref' ) ),
+						rank = JSON.parse ( $stub.attr ( 'data-rank' ) ),
 						article,
 						location,
 						topics,
@@ -123,7 +123,7 @@
 				}, '.show-comments', function ( event ) {
 					let $showComments = $ ( this ),
 						$replies = $showComments.parents ( '.comments' ).find ( '.replies' ),
-						total = $replies.data ( 'total' );
+						total = $replies.attr ( 'data-total' );
 					
 					if ( $replies.hasClass ( 'hidden' ) ) {
 						$showComments.text ( 'Hide Comments' );
@@ -136,10 +136,10 @@
 					let app = event.data,
 						$id = app.$ui.id,
 						$article = $ ( this ).parents ( '.article' ),
-						id = $article.data ( 'id' ),
-						index = $article.data ( 'index' ),
+						id = $article.attr ( 'data-id' ),
+						index = $article.attr ( 'data-index' ),
 						ref = { category: id },
-						rank = $article.data ( 'rank' ),
+						rank = JSON.parse ( $article.attr ( 'data-rank' ) ),
 						location = { to: 'topic', references: ref },
 						topics = { from: 'topic', references: ref, rank: { type: 'topic', category: rank.category } },
 						article = app.articles.category [ rank.category ],
@@ -650,8 +650,8 @@
 						let isHidden = $container.hasClass ( 'hidden' );
 						$container.addClass ( 'hidden' );
 						
-						received = $container.data ( 'received' );
-						total = $container.data ( 'total' );
+						received = $container.attr ( 'data-received' );
+						total = $container.attr ( 'data-total' );
 						id = $container.attr ( 'id' );
 						
 						if ( !id ) {
