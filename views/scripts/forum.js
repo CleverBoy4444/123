@@ -50,21 +50,22 @@
 						index = Number ( $stub.data ( 'index' ) ),
 						id = Number ( $stub.data ( 'id' ) ),
 						ref = $stub.data ( 'ref' ),
+						rank = $stub.data ( 'rank' ),
 						article,
 						location,
 						topics,
 						comments,
 						listen;
 					if ( !ref ) {
-						article = app.articles.category [ index ];
+						article = app.articles.category [ rank.category ];
 						location = { to: 'post', references: { category: id } };
-						topics = { from: 'topic', references: { category: id }, rank: { type: 'topic', category: index } };
-						comments = { from: 'post', references: { category: id, topic: null }, rank: { type: 'post', category: index } };
+						topics = { from: 'topic', references: { category: id }, rank: { type: 'topic', category: rank.category } };
+						comments = { from: 'post', references: { category: id, topic: null }, rank: { type: 'post', category: rank.category } };
 						listen = `category_${id}`;
 					} else if ( 'category' in ref ) {
-						article = app.articles.category [ ref.category - 1 ].topics [ index ];
+						article = app.articles.category [ rank.category ].topics [ rank.topic ];
 						location = { to: 'post', references : { category: ref.category, topic: id } };
-						comments = { from: 'post', references: { category: ref.category, topic: id }, rank: { type: 'post', category: ref.category - 1, topic: index } };
+						comments = { from: 'post', references: { category: ref.category, topic: id }, rank: { type: 'post', category: rank.category, topic: rank.topic } };
 						listen = `category_${ref.category}-topic_${article.id}`;
 					}
 					
@@ -79,14 +80,15 @@
 					
 					if ( 'topic' in location.references ) {
 						// $container.find ( '.topics' ).addClass ( 'hidden' );
-						$container.find ( '.return' ).text ( 'Back to Topics' );
+						$container.find ( '.return' ).text ( 'Return to Topics' );
 						$container.find ( '.show-topics' ).addClass ( 'hidden' );
 					} else {
 						// $container.find ( '.topics' ).removeClass ( 'hidden' );
-						$container.find ( '.return' ).text ( 'Back to all Categories' );
+						$container.find ( '.return' ).text ( 'Return to all Categories' );
 						$container.find ( '.show-topics' ).removeClass ( 'hidden' );
 					}
 					
+					$id.forumInput.removeAttr ( 'data-location' );
 					$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 					$id.inputHeading.text ( 'topic' in location.references ? 'Reply to Topic' : 'Reply to Category' );
 					$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
@@ -137,11 +139,13 @@
 						id = $article.data ( 'id' ),
 						index = $article.data ( 'index' ),
 						ref = { category: id },
+						rank = $article.data ( 'rank' ),
 						location = { to: 'topic', references: ref },
-						topics = { from: 'topic', references: ref, rank: { type: 'topic', category: index } },
-						article = app.articles.category [ index ],
+						topics = { from: 'topic', references: ref, rank: { type: 'topic', category: rank.category } },
+						article = app.articles.category [ rank.category ],
 						listen = `category_${id}`;
 					
+					$id.forumInput.removeAttr ( 'data-location' );
 					$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 					$id.inputHeading.text ( 'New Topic in Category' );
 					$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
@@ -240,9 +244,13 @@
 					var app = event.data,
 						$id = app.$ui.id,
 						$forumInput = $id.forumInput,
-						params = $forumInput.data ( 'location' ),
+						params = JSON.parse ( $forumInput.attr ( 'data-location' ) ),
 						title = $id.userTitle.val (),
 						body = $id.userBody.val ();
+					
+					console.log ( 'submission parameters', params );
+					console.log ( $forumInput [ 0 ] );
+					console.log ( 'how many children does forum-input have?', $forumInput.length );
 					
 					if ( !title ) {
 						if ( params.to !== 'post' ) {
@@ -599,7 +607,7 @@
 					} );
 				},
 				
-				cacheArticles: function ( collection, extend, articles ) {
+				cacheArticles: function ( collection, extend, articles, rank ) {
 					var article, i, l, key, from = collection.length;
 					
 					for ( i = 0, l = articles.length; i < l; i = i + 1 ) {
@@ -609,6 +617,8 @@
 								article [ key ] = extend [ key ];
 							}
 						}
+						
+						let references = ( 'references' in article ? article.references : article );
 						
 						if ( 'title' in article ) {
 							article.title = _app.sanitize ( md.render ( '#### ' + article.title ) );
@@ -620,7 +630,8 @@
 							article.body = _app.sanitize ( md.render ( article.body.replace ( '\n', '\\n' ) + `  —  <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
 						}
 						
-						article.index = from + i;
+						article.rank = $.extend ( {}, rank );
+						article.rank [ rank.type ] = from + i;
 					}
 					
 					Array.prototype.push.apply ( collection, articles );
@@ -650,10 +661,6 @@
 						for ( let i = 0, l = articles.length; i < l; i = i + 1 ) {
 							article = articles [ i ];
 							
-							if ( $container.hasClass ( 'replies' ) ) {
-								console.log ( article.body );
-							}
-							
 							$tempView = $ ( $template.html () );
 							$tempView.find ( '.about' ).append ( $aboutTemplate.html () );
 							
@@ -665,7 +672,7 @@
 								{ category, topic, chat } = article,
 								title = stub ? $ ( article.title ).html() : article.title;
 							
-							$tempView.attr ( { 'data-id': article.id, 'data-created': article.created, 'data-index': article.index } );
+							$tempView.attr ( { 'data-id': article.id, 'data-created': article.created, 'data-rank': JSON.stringify ( article.rank ) } );
 							
 							// if any of title, body or about does not exist
 							// the html insertion will do nothing
@@ -682,10 +689,10 @@
 								$edited.text ( '' ).addClass ( 'hidden' );
 							}
 							
-							let ref = {};
+							let ref = {}, references = ( 'references' in article ? article.references : article );
 							for ( let name of [ 'category', 'topic', 'chat' ] ) {
-								if ( name in article ) {
-									ref [ name ] = article [ name ];
+								if ( name in references ) {
+									ref [ name ] = references [ name ];
 								}
 							}
 							
@@ -707,8 +714,6 @@
 						if ( !isHidden ) {
 							$container.removeClass ( 'hidden' );
 						}
-					} else {
-						console.log ( 'crap?' );
 					}
 				},
 				
@@ -774,11 +779,12 @@
 								sortBy = order [ 0 ].toUpperCase () + order.slice ( 1 ),
 								sort = _app [ 'sort' + sortBy ];
 							
-							_app.cacheArticles ( collection, extend, articles );
+							_app.cacheArticles ( collection, extend, articles, rank );
 							
 							collection.received = res.timestamp;
 							collection.total = res.total;
 							
+							console.log ( 'displaying content of rank:', rank );
 							if ( container ) {
 								container.attr ( { 'data-received': res.timestamp, 'data-total': res.total } );
 								_app.appendArticles ( container, template, articles, true, sort );
@@ -831,6 +837,7 @@
 							// then rendering and displaying of the submission
 							// stub will be deferred until it comes up in
 							// a later page fetch
+							console.log ( 'collection length:', collection.length );
 							if ( ! ( res.rank.type in res.rank ) || res.rank [ res.rank.type ] <= collection.length ) {
 								'title' in params && ( res.title = params.title );
 								res.body = params.body;
@@ -840,12 +847,13 @@
 									container.empty ();
 								}
 								
-								_app.cacheArticles ( collection, extend, [ res ] );
+								_app.cacheArticles ( collection, extend, [ res ], res.rank );
 								collection.received = res.created;
 								let total = collection.total = collection.total + 1;
 								
 								if ( container ) {
-									let stub = container = _app.$ui.id.articleStubs;
+									let stub = container === _app.$ui.id.articleStubs;
+									console.log ( 'appending article:', res );
 									_app.appendArticles ( container, template, articles, stub, sort );
 									container.attr ( 'data-total', total );
 									if ( container.hasClass ( 'replies' ) && container.hasClass ( 'hidden' ) ) {
@@ -854,6 +862,8 @@
 								} else {
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 								}
+							} else {
+								console.log ( 'didn\'t update' );
 							}
 							
 							// clear the submission form and refocus on title input

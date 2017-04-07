@@ -186,42 +186,48 @@ function submitQuery ( data, callback ) {
 					] );
 				} else {
 					
-					// categories are not relative so their ranking is always given as id - 1
-					rank.category = esc.category - 1;
-					
-					if ( table === '`post`' ) {
-						if ( 'topic' in ref ) {
-							console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
-							this.push ( [
-								function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
-								`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
-								function ( results ) { rank.topic = results [ 0 ].rank; }
-							], [
-								function ( sql ) { console.log ( 'post ranking sql:', sql ); },
-								`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
-								function ( results ) { rank.post = results [ 0 ].rank; }
-							] );
-						} else {
-							this.push ( [
-								function ( sql ) { console.log ( 'post ranking sql:', sql ); },
-								`${select} where category = ${esc.category} and topic is null and id < ${id}`,
-								function ( results ) { rank.post = results [ 0 ].rank; }
-							] );
-						}
-					} else if ( table === '`topic`' ) {
-						this.push ( [
-							function () { console.log ( 'topic ranking' ); },
-							`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
-							function ( results ) { rank.topic = results [ 0 ].rank; }
-						] );
-					} else if ( table === '`chat`') {
+					if ( table === '`chat`' ) {
 						this.push ( [
 							function () { console.log ( 'chat ranking' ); },
 							`select count(*) as rank from chat where id < ${id}`,
 							function ( results ) { rank.chat = results [ 0 ].rank; }
 						] );
 					} else {
-						callback ( `cannot process submission to "${table}"` );
+						
+						this.push ( [
+							function ( sql ) { console.log ( 'category ranking sql:', sql ); },
+							`select count(*) as rank from category where id < ${esc.category}`,
+							function ( results ) { rank.category = results [ 0 ].rank; }
+						] );
+						
+						if ( table === '`post`' ) {
+							if ( 'topic' in ref ) {
+								console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
+								this.push ( [
+									function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
+									`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
+									function ( results ) { rank.topic = results [ 0 ].rank; }
+								], [
+									function ( sql ) { console.log ( 'post ranking sql:', sql ); },
+									`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
+									function ( results ) { rank.post = results [ 0 ].rank; }
+								] );
+							} else {
+								this.push ( [
+									function ( sql ) { console.log ( 'post ranking sql:', sql ); },
+									`${select} where category = ${esc.category} and topic is null and id < ${id}`,
+									function ( results ) { rank.post = results [ 0 ].rank; }
+								] );
+							}
+						} else if ( table === '`topic`' ) {
+							this.push ( [
+								function () { console.log ( 'topic ranking' ); },
+								`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
+								function ( results ) { rank.topic = results [ 0 ].rank; }
+							] );
+						} else {
+							callback ( `cannot process submission to "${table}"` );
+						}
 					}
 				}
 			}
