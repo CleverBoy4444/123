@@ -34,8 +34,8 @@ module.exports = function configure ( options, callback ) {
             var version = results [ 0 ] && results [ 0 ] [ '@@version' ] || '',
                 sub = version.split ( '.' );
             
-            if ( sub [ 0 ] && sub [ 0 ] < '5' || sub [ 1 ] && sub [ 1 ] < '7' ) {
-                callback ( wrapError ( { message: 'MySQL version, ' + version + ', must be >= 5.7' } ) );
+            if ( sub [ 0 ] && sub [ 0 ] < '5' || sub [ 1 ] && sub [ 1 ] < '5' ) {
+                callback ( wrapError ( { message: 'MySQL version, ' + version + ', must be >= 5.5' } ) );
                 return;
             } else {
                 con.message ( 'version ok - ' + version );
@@ -49,7 +49,12 @@ module.exports = function configure ( options, callback ) {
                     return;
                 }
                 
-                function getPool () {
+                function getPool ( err ) {
+                	
+                	if ( err ) {
+                		callback ( err );
+                		return;
+                	}
                     
                     con.message ( 'found database "' + db + '", closing connnection ' + id + '...' );
                     

@@ -2,6 +2,7 @@ var express = require ( 'express' ),
 	session = require ( 'express-session' ),
 	MySqlStore = require ( 'express-mysql-session' ),
 	path = require ( 'path' ),
+	fmt = require ( 'util' ).format,
 	app = express (),
 	router = express.Router (),
 	server = require ( 'http' ).Server ( app ),
@@ -76,10 +77,10 @@ initDatabase ( db_connection, function callback ( err, result ) {
 	try {
 		server.listen( port, addr, function () {
 			con.message ( 'server ready!' );
-			con.message ( `application server running at ${ addr.address }:${ addr.port }` );
+			con.message ( fmt ( 'application server running at %s:%s', addr.address, addr.port ) );
 		} );
 	} catch ( e ) {
-		con.warn ( `Server may already be running at ${ addr }:${ port }` );
+		con.warn ( fmt ( 'Server may already be running at %s:%s', addr, port ) );
 		con.message ( 'Try visiting https://eon-team-signin-ericbalingit.c9users.io' );
 		con.error ( e );
 	}

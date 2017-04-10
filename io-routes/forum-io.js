@@ -1,6 +1,6 @@
-var session = require ( './io-server-session-manager.js' ),
+var fmt = require ( 'util' ).format,
+	session = require ( './io-server-session-manager.js' ),
 	userRooms = require ( './user-rooms.js' ),
-	userQuery = require ( '../queries/user-query.js' ),
 	transactions = require ( '../queries/transactions.js' ),
 	transactions_initialized = false,
 	transaction,
@@ -32,7 +32,7 @@ module.exports = function ( server, db, io ) {
 			if ( id in submissions ) {
 				callback ( null, submissions [ id ] );
 			} else {
-				callback ( `submission "${id}" not found` );
+				callback ( fmt ( 'submission "%s" not found', id ));//`submission "${id}" not found`
 			}
 		}
 	};
@@ -94,7 +94,7 @@ module.exports = function ( server, db, io ) {
 		socket.on ( 'request', function ( forward, data, callback ) {
 			
 			if ( !( ( 'session' in socket.request ) && ( 'user' in socket.request.session ) ) ) {
-				socket.emit ( '_error_', null, `session unavailable on ( "request"... ${forward}), try reloading the page` );
+				socket.emit ( '_error_', null, fmt ( 'session unavailable on ( "request"... %s ), try reloading the page', forward) );//`session unavailable on ( "request"... ${forward}), try reloading the page`
 			} else {
 				
 				if ( ! ( forward in request ) ) {
@@ -117,8 +117,19 @@ module.exports = function ( server, db, io ) {
 								
 								article.username = data.username;
 								
-								let { id, rank, created, edited } = article,
-									res = { id, owner: article.owner, username: article.username, rank, room: data.room, created, edited };
+								var id = article.id,
+									rank = article.rank,
+									created = article.created,
+									edited = article.edited,
+									res = {
+										id: id,
+										owner: article.owner,
+										username: article.username,
+										rank: rank,
+										room: data.room,
+										created: created,
+										edited: edited
+									};//{ id, owner: article.owner, username: article.username, rank, room: data.room, created, edited };
 								
 								ref && ( res.references = ref );
 								

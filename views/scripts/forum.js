@@ -47,9 +47,9 @@
 						app = event.data,
 						$id = app.$ui.id,
 						$container = $id.articleView,
-						index = Number ( $stub.attr ( 'data-index' ) ),
 						id = Number ( $stub.attr ( 'data-id' ) ),
-						ref = JSON.parse ( $stub.attr ( 'data-ref' ) ),
+						dataRef = $stub.attr ( 'data-ref' ),
+						ref = dataRef ? JSON.parse ( dataRef ) : null,
 						rank = JSON.parse ( $stub.attr ( 'data-rank' ) ),
 						article,
 						location,
@@ -79,16 +79,13 @@
 					$id.titleSection.addClass ( 'hidden' );
 					
 					if ( 'topic' in location.references ) {
-						// $container.find ( '.topics' ).addClass ( 'hidden' );
 						$container.find ( '.return' ).text ( 'Return to Topics' );
 						$container.find ( '.show-topics' ).addClass ( 'hidden' );
 					} else {
-						// $container.find ( '.topics' ).removeClass ( 'hidden' );
 						$container.find ( '.return' ).text ( 'Return to all Categories' );
 						$container.find ( '.show-topics' ).removeClass ( 'hidden' );
 					}
 					
-					$id.forumInput.removeAttr ( 'data-location' );
 					$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 					$id.inputHeading.text ( 'topic' in location.references ? 'Reply to Topic' : 'Reply to Category' );
 					$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
@@ -116,7 +113,6 @@
 								.removeClass ( 'hidden' );
 						}
 					} else {
-						
 						$id.articleView.find ( '.show-topics' ).addClass ( 'hidden' );
 					}
 					
@@ -136,16 +132,13 @@
 					let app = event.data,
 						$id = app.$ui.id,
 						$article = $ ( this ).parents ( '.article' ),
-						id = $article.attr ( 'data-id' ),
-						index = $article.attr ( 'data-index' ),
+						id = Number ( $article.attr ( 'data-id' ) ),
 						ref = { category: id },
 						rank = JSON.parse ( $article.attr ( 'data-rank' ) ),
 						location = { to: 'topic', references: ref },
-						topics = { from: 'topic', references: ref, rank: { type: 'topic', category: rank.category } },
 						article = app.articles.category [ rank.category ],
 						listen = `category_${id}`;
 					
-					$id.forumInput.removeAttr ( 'data-location' );
 					$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 					$id.inputHeading.text ( 'New Topic in Category' );
 					$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
@@ -154,16 +147,14 @@
 					
 					app.listenChannel ( listen );
 					
-					// $id.articleStubs.empty ();
-					
-					// if ( 'topics' in article && article.topics.length === 0 ) {
-					// 	app.requestPage ( topics );
-					// }
-					
 					$id.articleView.addClass ( 'hidden' );
 					$id.articleStubs.removeClass ( 'hidden' );
 					$id.return.removeClass ( 'hidden' );
-				}  ]
+				}, '.return, .all-categories', function ( event ) {
+					// return to all categories
+				}, '.the-category', function ( event ) {
+					// return to the category at the root of the current path
+				} ]
 			},
 			
 			menu: {
@@ -404,6 +395,8 @@
 			app.requestPage ( { from: 'category', rank: { type: 'category' } } );
 			
 			$id.return.addClass ( 'hidden' );
+			
+			$id.userTitle.focus ();
 		}
 	);
 	

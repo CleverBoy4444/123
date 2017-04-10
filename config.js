@@ -27,7 +27,7 @@ module.exports = function dbConfig ( db, name, callback, error, log ) {
             .map ( function ( e ) {
                 return [ e, error, log ];
             } );
-        
-        resolveQueries ( db, queries, callback );
+        callback ( 'cannot create database, transactions are not properly configured ( see "forum-server/config.js:31" )' );
+        //resolveQueries ( db, queries, callback );
     } );
 };

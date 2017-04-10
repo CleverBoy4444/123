@@ -1,17 +1,18 @@
-var mysql = require('mysql'),
-	resolveQueries = require('./resolve-queries.js'),
+var mysql = require ( 'mysql' ),
+	fmt = require ( 'util' ).format,
+	resolveQueries = require ( './resolve-queries.js' ),
 	db, resolve_transaction,
 	request_limit = 10; // number of articles to fetch on a call by default
 
 // sql injection attack safety
 function escape_sqlId ( data ) {
-	for ( let key in data ) {
+	for ( var key in data ) {
 		data [ key ] = mysql.escapeId ( data [ key ] );
 	}
 }
 
 function escape_sql ( data ) {
-	for ( let key in data ) {
+	for ( var key in data ) {
 		data [ key ] = mysql.escape ( data [ key ] );
 	}
 }
@@ -32,9 +33,18 @@ function processRequest ( queries, then) {
 
 function pageQuery ( data, callback ) {
 	
-	let { from: table, references: ref, index = 0, limit = request_limit } = data,
-		{ category, topic, chat } = ( ref || {} ),
-		esc = { category, topic, chat }, key,
+	var table = data.from,
+		ref = data.references,
+		index = 'index' in data ? data.index : 0,
+		limit = 'limit' in data ? data.limit : request_limit,
+		category = ref ? ref.category : null,
+		topic = ref ? ref.topic : null,
+		chat = ref ? ref.chat : null,
+		esc = {
+			category: category,
+			topic: topic,
+			chat: chat
+		}, key,
 		where = '',
 		articles, total, timestamp, constraints = [];
 	
@@ -46,7 +56,7 @@ function pageQuery ( data, callback ) {
 	if ( ref ) {
 		for ( key in ref ) {
 			if ( key in esc ) {
-				constraints.push ( `${ key } ${ esc [ key ] === 'NULL' ? 'is' : '='} ${ esc [ key ] }` );
+				constraints.push ( fmt ( '', key, esc [ key ] === 'NULL' ? 'is' : '=', esc [ key ] ) );
 			}
 		}
 		
@@ -57,11 +67,13 @@ function pageQuery ( data, callback ) {
 	processRequest (
 		[
 			function ( sql ) { console.log ( 'page:', sql ); },
-			`select ${table}.*, user.name as username from ${table} inner join user on ${table}.owner = user.id ${where}limit ${index}, ${limit}`,
+			fmt ( 'select %s.*, user.name as username from %s inner join user on %s.owner = user.id %slimit %s, %s', table, table, table, where, index, limit ),
+			//`select ${table}.*, user.name as username from ${table} inner join user on ${table}.owner = user.id ${where}limit ${index}, ${limit}`,
 			function ( results ) { articles = results; },
 		], [
 			function ( sql ) { console.log ( 'count:', sql ); },
-			`select count(*) as count from ${table}${where}`,
+			fmt ( 'select count(*) as count from %s%s', table, where ),
+			//`select count(*) as count from ${table}${where}`,
 			function ( results ) { total = results [ 0 ].count; },
 		], [
 			function ( sql ) { console.log ( 'timestamp:', sql ); },
@@ -84,15 +96,19 @@ function pageQuery ( data, callback ) {
  */
 function updateQuery ( data, callback ) {
 
-	let {
-		from: table,
-		references: ref,
-		timestamp: fromtimestamp,
-		index = 0,
-		limit = request_limit
-	} = data,
-		{ category, topic, chat } = ( ref || {} ),
-		esc = { category, topic, chat }, key,
+	var table = data.from,
+		ref = data.references,
+		fromtimestamp = data.timestamp,
+		index = 'index' in data ? data.index : 0,
+		limit = 'limit' in data ? data.limit : request_limit,
+		category = ref ? ref.category : null,
+		topic = ref ? ref.topic : null,
+		chat = ref ? ref.chat : null,
+		esc = {
+			category: category,
+			topic: topic,
+			chat: chat
+		}, key,
 		where, articles, total, timestamp, constraints = [];
 	
 	escape_sql ( esc );
@@ -104,12 +120,12 @@ function updateQuery ( data, callback ) {
 	if ( ref ) {
 		for ( key in ref ) {
 			if ( key in esc ) {
-				constraints.push ( `${ key } = ${ esc [ key ] }` );
+				constraints.push ( fmt ( '%s = %s', key, esc [ key ] ) ); //`${ key } = ${ esc [ key ] }`
 			}
 		}
 	}
 
-	constraints.push ( `( edited > ${fromtimestamp} or created > ${fromtimestamp} ) ` );
+	constraints.push ( fmt ( '( edited > %s or created > %s ) ', fromtimestamp, fromtimestamp ) );//`( edited > ${fromtimestamp} or created > ${fromtimestamp} ) `
 
 	where = 'where ' + constraints.join(' and ');
 	
@@ -117,11 +133,13 @@ function updateQuery ( data, callback ) {
 	processRequest (
 		[
 			function ( sql ) { console.log ( 'update:', sql ); },
-			`select * from ${table} ${where} limit ${index}, ${limit}`,
+			fmt ( 'select * from %s %s limit %s, %s', table, where, index, limit ),
+			//`select * from ${table} ${where} limit ${index}, ${limit}`,
 			function ( results ) { articles = results; }
 		], [
 			function ( sql ) { console.log ( 'count:', sql ); },
-			`select count(*) as count from ${table} ${where}`,
+			fmt ( 'select count(*) as count from %s %s', table, where ),
+			//`select count(*) as count from ${table} ${where}`,
 			function ( results ) { total = results [ 0 ].count; }
 		], [
 			function ( sql ) { console.log ( 'timestamp:', sql ); },
@@ -134,18 +152,26 @@ function updateQuery ( data, callback ) {
 
 function submitQuery ( data, callback ) {
 	
-	let {
-		to: table,
-		references: ref,
-		userid: owner,
-		title,
-		body
-	} = data,
-		{ category, topic, chat } = ( ref || {} ),
-		esc = { category, topic, chat }, key,
-		dataset = { owner, body },
+	var table = data.to,
+		ref = data.references,
+		owner = data.userid,
+		title = data.title,
+		body = data.body,
+		category = ref ? ref.category : null,
+		topic = ref ? ref.topic : null,
+		chat = ref ? ref.chat : null,
+		esc = {
+			category: category,
+			topic: topic,
+			chat: chat
+		}, key,
+		dataset = {
+			owner: owner,
+			body: body
+		},
 		constraints = [],
-		article, rank = { type: table };
+		article,
+		rank = { type: table };
 	
 	escape_sql ( esc );
 	table = sql_escId ( table );
@@ -154,7 +180,7 @@ function submitQuery ( data, callback ) {
 		for ( key in ref ) {
 			if ( key in esc ) {
 				dataset [ key ] = esc [ key ];
-				constraints.push ( `${ key } = ${ esc [ key ] }` );
+				constraints.push ( fmt ( '%s = %s', key, esc [ key ] ) );//`${ key } = ${ esc [ key ] }`
 			}
 		}
 	}
@@ -165,23 +191,26 @@ function submitQuery ( data, callback ) {
 	
 	processRequest( [
 		function () { console.log ( 'insert' ); },
-		`insert into ${table} set ?`, dataset,
+		fmt ( 'insert into %s set ?', table ), dataset,
+		//`insert into ${table} set ?`, dataset,
 		
 		// called in the context of the transaction stack
 		// so pushing onto this is inserting queries into the transaction
 		function ( results ) {
-			let id = results.insertId,
-				select = `select count(*) as rank from ${table}`;
+			var id = results.insertId,
+				select = fmt ( 'select count(*) as rank from %s', table );//`select count(*) as rank from ${table}`;
 			
 			if ( ref ) {
 				if ( 'chat' in ref ) {
 					this.push ( [
 						function () { console.log ( 'chat ranking' ); },
-						`select count(*) as rank from chat where id < ${esc.chat}`,
+						fmt ( 'select count(*) as rank from chat where id < %s', esc.chat ),
+						//`select count(*) as rank from chat where id < ${esc.chat}`,
 						function ( results ) { rank.chat = results [ 0 ].rank; }
 					], [
 						function () { console.log ( 'post ranking' ); },
-						`${select} where chat = ${esc.chat} and id < ${id}`,
+						fmt ( '%s where chat = %s and id < %s', select, esc.chat, id ),
+						//`${select} where chat = ${esc.chat} and id < ${id}`,
 						function ( results ) { rank.post = results [ 0 ].rank; }
 					] );
 				} else {
@@ -189,44 +218,50 @@ function submitQuery ( data, callback ) {
 					if ( table === '`chat`' ) {
 						this.push ( [
 							function () { console.log ( 'chat ranking' ); },
-							`select count(*) as rank from chat where id < ${id}`,
+							fmt ( 'select count(*) as rank from chat where id < %s', id ),
+							//`select count(*) as rank from chat where id < ${id}`,
 							function ( results ) { rank.chat = results [ 0 ].rank; }
 						] );
 					} else {
 						
 						this.push ( [
 							function ( sql ) { console.log ( 'category ranking sql:', sql ); },
-							`select count(*) as rank from category where id < ${esc.category}`,
+							fmt ( 'select count(*) as rank from category where id < %s', esc.category ),
+							//`select count(*) as rank from category where id < ${esc.category}`,
 							function ( results ) { rank.category = results [ 0 ].rank; }
 						] );
 						
 						if ( table === '`post`' ) {
 							if ( 'topic' in ref ) {
-								console.log ( `( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
+								console.log ( fmt ( '( topic post ): category-%s, topic-%s, id-%s', esc.category, esc.topic, id ) );//`( topic post ): category-${esc.category}, topic-${esc.topic}, id-${id}` );
 								this.push ( [
 									function ( sql ) { console.log ( 'topic ranking sql:', sql ); },
-									`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
+									fmt ( 'select count(*) as rank from topic where category = %s and id < %s', esc.category, esc.topic ),
+									//`select count(*) as rank from topic where category = ${esc.category} and id < ${esc.topic}`,
 									function ( results ) { rank.topic = results [ 0 ].rank; }
 								], [
 									function ( sql ) { console.log ( 'post ranking sql:', sql ); },
-									`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
+									fmt ( '%s where category = %s and topic = %s and id < %s', select, esc.category, esc.topic, id ),
+									//`${select} where category = ${esc.category} and topic = ${esc.topic} and id < ${id}`,
 									function ( results ) { rank.post = results [ 0 ].rank; }
 								] );
 							} else {
 								this.push ( [
 									function ( sql ) { console.log ( 'post ranking sql:', sql ); },
-									`${select} where category = ${esc.category} and topic is null and id < ${id}`,
+									fmt ( '%s where category = %s and topic is null and id < %s', select, esc.category, id ),
+									//`${select} where category = ${esc.category} and topic is null and id < ${id}`,
 									function ( results ) { rank.post = results [ 0 ].rank; }
 								] );
 							}
 						} else if ( table === '`topic`' ) {
 							this.push ( [
 								function () { console.log ( 'topic ranking' ); },
-								`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
+								fmt ( 'select count(*) as rank from topic where category = %s and id < %s', esc.category, id ),
+								//`select count(*) as rank from topic where category = ${esc.category} and id < ${id}`,
 								function ( results ) { rank.topic = results [ 0 ].rank; }
 							] );
 						} else {
-							callback ( `cannot process submission to "${table}"` );
+							callback ( fmt ( 'cannot process submission to "%s"', table) );//`cannot process submission to "${table}"`
 						}
 					}
 				}
@@ -234,7 +269,8 @@ function submitQuery ( data, callback ) {
 			
 			this.push ( [
 				function () { console.log ( 'retrieve' ); },
-				`select * from ${table} where id = ${id}`,
+				fmt ( 'select * from %s where id = %s', table, id ),
+				//`select * from ${table} where id = ${id}`,
 				function ( results ) {
 					article = results [ 0 ];
 					article.rank = rank;
@@ -268,7 +304,7 @@ exports.init = function ( connection, callback ) {
 			console.error ( 'show tables failed!\n', err );
 		} else {
 			var name = field [ 0 ].name;
-			for ( let i = 0, l = results.length; i < l; i = i + 1) {
+			for ( var i = 0, l = results.length; i < l; i = i + 1) {
 				tables [ results [ i ][ name ] ] = true;
 			}
 			
