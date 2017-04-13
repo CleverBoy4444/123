@@ -322,6 +322,16 @@
 					} else {
 						$more.addClass ( 'hidden' );
 					}
+				}, '.more', function ( event ) {
+					let $parent = $ ( this ).parent (),
+						app = event.data,
+						$id = app.$ui.id,
+						location = JSON.parse ( $id.forumInput.attr ( 'location' ) ),
+						params = { from: location.to };
+					
+					if ( 'references' in location ) {
+						params.references = location.references;
+					}
 				} ]
 			},
 			
