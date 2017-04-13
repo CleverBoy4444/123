@@ -1,5 +1,5 @@
 var mysql = require ( 'mysql' ),
-	db, connection;
+	db;
 
 function formatQuery ( before, sql, params, err, then ) {
 	
@@ -82,6 +82,8 @@ function unstackQueries ( conn, stack, failed, next ) {
 				if ( stack.length > 0 ) {
 					unstackQueries ( conn, stack, failed, next );
 				} else {
+					// commit does not release the connection because
+					// other transactions may follow
 					conn.commit ( function ( err ) {
 						if ( err ) {
 							failed ( err );
@@ -99,66 +101,66 @@ function unstackQueries ( conn, stack, failed, next ) {
 
 // transaction class {
 
-var sqlx = function SQLTransaction () {
-	this.stack = [];
-	this.queries = {};
-};
+// var sqlx = function SQLTransaction () {
+// 	this.stack = [];
+// 	this.queries = {};
+// };
 
-( function ( proto ) {
+// ( function ( proto ) {
 	
-	proto.addQuery = function addQuery ( id, sql, params, error, then, before ) {
+// 	proto.addQuery = function addQuery ( id, sql, params, error, then, before ) {
 		
-		var args = Array.prototype.slice.call ( arguments );
+// 		var args = Array.prototype.slice.call ( arguments );
 		
-		if ( typeof sql === 'string' ) {
-			this.queries [ args.shift () ] = { query: sql, params: params };
-		}
+// 		if ( typeof sql === 'string' ) {
+// 			this.queries [ args.shift () ] = { query: sql, params: params };
+// 		}
 		
-		this.stack.push ( args );
+// 		this.stack.push ( args );
 		
-		return this;
-	};
+// 		return this;
+// 	};
 	
-	proto.set = function ( id, data ) {
-		if ( id in this.queries ) {
-			var value = this.queries [ id ],
-				params = value.params;
-			for ( var key in params ) {
-				if ( key in data ) {
-					params [ key ] = data [ key ];
-				}
-			}
-		}
-	};
+// 	proto.set = function ( id, data ) {
+// 		if ( id in this.queries ) {
+// 			var value = this.queries [ id ],
+// 				params = value.params;
+// 			for ( var key in params ) {
+// 				if ( key in data ) {
+// 					params [ key ] = data [ key ];
+// 				}
+// 			}
+// 		}
+// 	};
 	
-	proto.execute = function execute ( connection, error, next ) {
-		connection.beginTransaction ( function ( err ) {
-			if ( err ) {
-				if ( typeof error === 'function' ) {
-					error ( err );
-				} else if ( typeof then === 'function' ) {
-					next ( err );
-				}
-			} else {
-				unstackQueries ( connection, this.stack, error, next );
-			}
-		} );
-	};
+// 	proto.execute = function execute ( connection, error, next ) {
+// 		connection.beginTransaction ( function ( err ) {
+// 			if ( err ) {
+// 				if ( typeof error === 'function' ) {
+// 					error ( err );
+// 				} else if ( typeof then === 'function' ) {
+// 					next ( err );
+// 				}
+// 			} else {
+// 				unstackQueries ( connection, this.stack, error, next );
+// 			}
+// 		} );
+// 	};
 	
-} ) ( sqlx.prototype );
+// } ) ( sqlx.prototype );
 
-sqlx.transactions = {};
+// sqlx.transactions = {};
 
-sqlx.describe = function describe ( id ) {
-	return sqlx.transactions [ id ] = new sqlx ();
-};
+// sqlx.describe = function describe ( id ) {
+// 	return sqlx.transactions [ id ] = new sqlx ();
+// };
 
 // }
 
 
 exports.init = function init ( database ) {
 	
-	db = database; 
+	db = database;
 	
 	return function resolveQueries ( stack, error, then ) {
 		
@@ -170,10 +172,11 @@ exports.init = function init ( database ) {
 				conn.beginTransaction ( function ( err ) {
 					if ( err ) {
 						error ( err );
-						console.log ( err )
+						console.log ( err );
 					} else {
 						console.log ( 'unstacking' );
 						unstackQueries ( conn, stack, error, then );
+						conn.release ();	// release back to connection pool
 					}
 				} );
 			}

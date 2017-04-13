@@ -8,6 +8,20 @@
 		$error = $ ( '#error' ),
 		socket = io ( '/login' );
 	
+	function login ( e ) {
+		if ( $userName.val ().length === 0 || $userPass.val ().length === 0 ) {
+			$success.addClass ( 'hidden' );
+			$error.text ( 'Error: user name and password are required' );
+			$error.addClass ( 'column-item' );
+			$error.removeClass ( 'hidden' );
+		} else {
+			socket.emit ( 'login', $userName.val (), $userPass.val () );
+			
+			// prevent multiple login attempts between call and response
+			$login.off ( 'click' );
+		}
+	}
+	
 	socket.on ( 'redirect', function ( data ) {
 		
 		var wait,
@@ -50,22 +64,19 @@
 		$error.text ( message );
 		$error.addClass ( 'column-item' );
 		$error.removeClass ( 'hidden' );
+		
+		// allow new login attempt in error occurred
+		$login.on ( 'click', login );
 	} );
 	
-	$login.on ( 'click', function ( e ) {
-		if ( $userName.val ().length === 0 || $userPass.val ().length === 0 ) {
-			$success.addClass ( 'hidden' );
-			$error.text ( 'Error: user name and password are required' );
-			$error.addClass ( 'column-item' );
-			$error.removeClass ( 'hidden' );
-		} else {
-			socket.emit ( 'login', $userName.val (), $userPass.val () );
-		}
-	} );
+	$login.on ( 'click', login );
 	
 	$userPass.on ( 'keydown', function ( e ) {
 		if ( e.which === 13 ) {
 			$login.trigger ( 'click' );
+			
+			// prevent multiple login attempts between call and repsonse
+			$login.off ( 'click' );
 		}
 	} )
 } ) ();

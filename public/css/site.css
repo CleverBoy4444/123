@@ -431,6 +431,11 @@ select {
 
 #user-chat-content {
 	background-color: #111;
+	line-height: 1.75;
+}
+
+#user-chat-content p {
+	padding: 0.75em 0.25em;
 }
 
 .notify {
@@ -440,8 +445,8 @@ select {
 	animation: notify 1s infinite alternate;
 }
 
-.message:not( :last-child ) {
-	border-bottom: 1px solid darkgray;
+.message:nth-child(even) {
+	background-color: #222;
 }
 
 @-webkit-keyframes notify {
