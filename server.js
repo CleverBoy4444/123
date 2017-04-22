@@ -24,7 +24,7 @@ var express = require ( 'express' ),
 	con = require ( './console/console.js' ),
 	initDatabase = require ( './init.js' );
 
-console.log ( process.version );
+console.log ( 'Running on Node version', process.version );
 
 // init db here, if anything fails we have no server
 initDatabase ( db_connection, function callback ( err, result ) {

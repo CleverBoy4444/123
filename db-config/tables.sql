@@ -11,7 +11,7 @@ create table user (
 	joined datetime not null default current_timestamp,
 	unique ( name ),
 	primary key ( id )
-) engine = innodb auto_increment=0;
+) engine = innodb;
 
 create table category (
 	id int ( 11 ) not null auto_increment,
@@ -22,7 +22,7 @@ create table category (
 	edited datetime ( 6 ) null default null on update current_timestamp ( 6 ),
 	primary key ( id ),
 	foreign key ( owner ) references user ( id )
-) engine = innodb auto_increment=0;
+) engine = innodb;
 
 create table topic (
 	id int ( 11 ) not null auto_increment,
@@ -35,7 +35,7 @@ create table topic (
 	primary key ( id ),
 	foreign key ( owner ) references user ( id ),
 	foreign key ( category ) references category ( id )
-) engine = innodb auto_increment=0;
+) engine = innodb;
 
 create table chat (
 	id int ( 11 ) not null auto_increment,
@@ -44,7 +44,7 @@ create table chat (
 	created datetime ( 6 ) default current_timestamp ( 6 ),
 	primary key ( id ),
 	foreign key ( owner ) references user ( id )
-) engine = innodb auto_increment=0;
+) engine = innodb;
 
 create table chat_user (
 	id int ( 11 ) not null auto_increment,
@@ -53,7 +53,7 @@ create table chat_user (
 	primary key ( id ),
 	foreign key ( user ) references user ( id ),
 	foreign key ( chat ) references chat ( id ),
-) engine = innodb auto_increment=0;
+) engine = innodb;
 
 create table post (
 	id int ( 11 ) not null auto_increment,
@@ -69,4 +69,4 @@ create table post (
 	foreign key ( topic ) references topic ( id ),
 	foreign key ( category ) references category ( id ),
 	foreign key ( chat ) references chat ( id )
-) engine = innodb auto_increment=0;
+) engine = innodb;

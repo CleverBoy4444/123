@@ -67,7 +67,7 @@ function pageQuery ( data, callback ) {
 	processRequest (
 		[
 			function ( sql ) { console.log ( 'page:', sql ); },
-			fmt ( 'select %s.*, user.name as username from %s inner join user on %s.owner = user.id %slimit %s, %s', table, table, table, where, index, limit ),
+			fmt ( 'select %s.*, user.name as username from %s inner join user on %s.owner = user.id %sorder by %s.id limit %s, %s', table, table, table, where, table, index, limit ),
 			//`select ${table}.*, user.name as username from ${table} inner join user on ${table}.owner = user.id ${where}limit ${index}, ${limit}`,
 			function ( results ) { articles = results; },
 		], [

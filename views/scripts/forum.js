@@ -571,12 +571,14 @@
 			app.joinChat ( 'Forum' );
 			
 			$id.forumInput.attr ( 'data-location', JSON.stringify ( { to: 'category' } ) );
-			app.listenChannel ( 'category' );
 			app.requestPage ( { from: 'category', rank: { type: 'category' } } );
+			app.listenChannel ( 'category' );
 			
 			$id.return.addClass ( 'hidden' );
 			
 			$id.userTitle.focus ();
+			
+			console.log ( app.articles );
 		}
 	);
 	
@@ -801,7 +803,7 @@
 							article.body = _app.sanitize ( md.render ( article.body.replace ( '\n', '\\n' ) + `  —  <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
 						}
 						
-						article.rank = $.extend ( {}, rank );
+						article.rank = $.extend ( true, {}, rank );
 						article.rank [ rank.type ] = from + i;
 					}
 					
@@ -890,7 +892,7 @@
 				
 				getPresentationLayer: function ( rank, room ) {
 					let $id = _$ui.id,
-						{ type, category, topic, chat, } = rank,
+						{ type, category, topic, chat } = rank,
 						collection, extend, container, template;
 					
 					if ( type === 'post' ) {
@@ -1016,6 +1018,7 @@
 							_app.errorMessage ( 'submission request failed ( see console ), please contact system administrator' );
 							console.log ( err );
 						} else {
+							
 							let $id = _app.$ui.id,
 								room = _app.listening,
 								{ collection, extend, container, template } = _app.getPresentationLayer ( res.rank, room ),
@@ -1027,7 +1030,7 @@
 							// then rendering and displaying of the submission
 							// stub will be deferred until it comes up in
 							// a later page fetch
-							if ( ! ( res.rank.type in res.rank ) || res.rank [ res.rank.type ] <= collection.length ) {
+							if ( ! ( res.rank.type in res.rank ) || collection.length === collection.total ) {
 								'title' in params && ( res.title = params.title );
 								res.body = params.body;
 								
@@ -1050,7 +1053,7 @@
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 								}
 							} else {
-								console.log ( 'didn\'t update' );
+								console.log ( 'update deferred' );
 							}
 							
 							// clear the submission form and refocus on title input
