@@ -1,22 +1,40 @@
+## About
 
-     ,-----.,--.                  ,--. ,---.   ,--.,------.  ,------.
-    '  .--./|  | ,---. ,--.,--. ,-|  || o   \  |  ||  .-.  \ |  .---'
-    |  |    |  || .-. ||  ||  |' .-. |`..'  |  |  ||  |  \  :|  `--, 
-    '  '--'\|  |' '-' ''  ''  '\ `-' | .'  /   |  ||  '--'  /|  `---.
-     `-----'`--' `---'  `----'  `---'  `--'    `--'`-------' `------'
-    ----------------------------------------------------------------- 
+This project, originally forked from lighthouse labs ( https://github.com/lighthouse-labs/node-socketio-chat ) is a user forum built for cloud9 workspaces.  None of the current code relfects the original fork, however out of respect for others whose interests in education coincide with those of this project, this source will remain as a fork of the lighthouse labs page.  Thanks for what you do lighthouse! :-)
 
 
-Welcome to your Node.js project on Cloud9 IDE!
+## Installation
 
-This chat example showcases how to use `socket.io` with a static `express` server.
+If you are creating a new workspace as a clone of this project, go to your home page and under "Clone from Git or Mercurial URL (optional)" past the link to this repository ( https://github.com/EricBalingit/c9-forum-and-chat ).  Configure the other settings as needed and click "Create Workspace".
 
-## Running the server
+If you want to clone the project manually into a sub-folder of an existing
+project, create a folder for the forum ( we use "forum-server" ), open the console ( F6 ) and type the following commands:
 
-1) Open `server.js` and start the app by clicking on the "Run" button in the top menu.
+    cd forum-server
+    git clone https://github.com/EricBalingit/c9-forum-and-chat .
 
-2) Alternatively you can launch the app from the Terminal:
+That last dot is important, it means "install to the current directory".  Otherwise the source will end up under `forum-server/c9-forum-and-chat`.
 
-    $ node server.js
+Once you have imported the source from github, then install the project dependecies:
 
-Once the server is running, open the project in the shape of 'https://projectname-username.c9.io/'. As you enter your name, watch the Users list (on the left) update. Once you press Enter or Send, the message is shared with all connected clients.
+    npm install
+
+## First Run Configuration
+
+If this is a new workspace and you have never used mysql in this workspace, use the following command to setup and configure the mysql client:
+
+    mysql-ctl install
+
+This will configure your mysql client and output your username and database
+name ( a database named "c9" is created, but will not be used by the forum ).
+
+Once you have the source code imported and the project dependencies installed you can run the forum server.  Open the file `server.js` and click the Run button.  A console will open up and you will see the output of the server log as it boots up.  On the first run the log will pause and prompt you to create the
+database, this will be a yellow, warning prompt.  Type y and hit enter to create the database and build the tables for the forum.  When that process finishes, in the last 3 or 4 lines of output you will see:
+
+    forum-server: server ready!
+    forum-server: application server running at 0.0.0.0:8080
+
+That's the green light!  If you scroll to the top of the output, there will be
+a link to the external url that will bring you to the forum web page - something like `https://<workspacename-username>.c9users.io`.  Click that link and you will see the forum login page.  There will be no user accounts to log into so chose the option at the bottom where it says
+
+    Don't have an account? __Signup here__

@@ -52,7 +52,6 @@ module.exports = function init ( options, callback ) {
 			
 			connection.query ( 'select schema_name from information_schema.schemata where schema_name = "' + db_name + '"', function ( err, results, fields ) {
 				if ( err ) {
-					console.log ( 'init:55', err );
 					callback ( wrapError ( err ) );
 					return;
 				}
