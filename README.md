@@ -2,6 +2,15 @@
 
 This project, originally forked from lighthouse labs ( https://github.com/lighthouse-labs/node-socketio-chat ) is a user forum built for cloud9 workspaces.  None of the current code relfects the original fork, however out of respect for others whose interests in education coincide with those of this project, this source will remain as a fork of the lighthouse labs page.  Thanks for what you do lighthouse! :-)
 
+## Features
+
+The forum includes live chat, submission of categories, topics ( under categories ) and posts under both categories and topics.  All content is processed with Remarkable markdown parser ( v1.6.0 https://github.com/jonschlinkert/remarkable ).  Some basic langauge highlighting support is included ( mainly what we needed for our own uses ) via Highlight.js - javascript, c, c++, python, java, asm and a couple others.  If you need further language support, custom language packs are available here:
+
+    https://highlightjs.org/download/
+
+Minimal, front-end, external javascript and css are located the `public` folder.
+
+Note: As of 4/23/2017 there appears to be a dispute between the owner of the Remarkable github repository and contributors to the project.  The version of Remarkable provide with this project is contained in the project so that any future issues regarding the current dispute will not affect the function of the current software.  If better options come available, those may be pursued in future releases.
 
 ## Installation
 
