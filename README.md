@@ -24,7 +24,7 @@ Just run this command in the console to restart the mysql server:
 
     sudo service mysql restart
 
-For more specific issues, see https://github.com/EricBalingit/c9-forum-and-chat/issues
+For issues related to the forum software, see https://github.com/EricBalingit/c9-forum-and-chat/issues
 
 ## Installation
 
@@ -61,3 +61,16 @@ That's the green light!  If you scroll to the top of the output, there will be
 a link to the external url that will bring you to the forum web page - something like `https://<workspacename-username>.c9users.io`.  Click that link and you will see the forum login page.  There will be no user accounts to log into so chose the option at the bottom where it says
 
     Don't have an account? __Signup here__
+
+## Updates
+
+When updates to the forum come available, assuming you have no conflicting, custom features written in your workspace, you can simply change to the forum
+folder from the console then run the command:
+
+    git rebase origin/master
+
+This is the recommended way to update your workspace forum ( even if you have no
+intention of changing any of the code ), since this will fetch everything from the current release and overwrite onto that any changes you have made to the configuration files.  If anythign goes wrong, cloning, updating and or deleting all of the code will not affect any of the content in your database ( that stays in your workspace and gets created only as needed and then only ever written to
+by the forum software ).
+
+So if you try to update and it does not work for any reason, or anything goes terribly wrong with the code, no need to panic, just ask a question on github ( under issues ) or ask on stackoverflow and work through it until the issues are resolved.  Then your forum will come back up with all of your content.  There will be no breaking changes to the forum software which affect what may be put into or taken out of your database.
