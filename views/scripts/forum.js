@@ -951,6 +951,7 @@
 								sortBy = order [ 0 ].toUpperCase () + order.slice ( 1 ),
 								sort = _app [ 'sort' + sortBy ];
 							
+							console.log ( res );
 							_app.cacheArticles ( collection, extend, articles, rank );
 							
 							collection.received = res.timestamp;

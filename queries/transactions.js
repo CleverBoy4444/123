@@ -80,7 +80,9 @@ function pageQuery ( data, callback ) {
 			'select current_timestamp ( 6 ) as timestamp',
 			function ( results ) { timestamp = results [ 0 ].timestamp; },
 		],
-		function ( err ) { callback ( err, { articles, total, timestamp } ); }
+		function ( err ) {
+			callback ( err, { articles, total, timestamp } );
+		}
 	);
 }
 
@@ -172,6 +174,8 @@ function submitQuery ( data, callback ) {
 		constraints = [],
 		article,
 		rank = { type: table };
+	
+	console.log ( 'why is user id null?', data.userid );
 	
 	escape_sql ( esc );
 	table = sql_escId ( table );

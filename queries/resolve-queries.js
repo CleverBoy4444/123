@@ -52,9 +52,9 @@ function unstackQueries ( conn, stack, failed, next ) {
 		return;
 	}
 	
-	error = typeof args [ 0 ] === 'function' ? args.shift () : next;
+	error = typeof args [ 1 ] === 'function' ? args.shift () : failed;
 	
-	callback = typeof args [ 0 ] === 'function' ? args.shift () : error;
+	callback = typeof args [ 0 ] === 'function' ? args.shift () : null;
 	
 	if ( sql ) {
 		
@@ -77,7 +77,9 @@ function unstackQueries ( conn, stack, failed, next ) {
 				
 			} else {
 				
-				callback.call ( stack, results, field );
+				if ( callback ) {
+					callback.call ( stack, results, field );
+				}
 				
 				if ( stack.length > 0 ) {
 					unstackQueries ( conn, stack, failed, next );
@@ -89,6 +91,7 @@ function unstackQueries ( conn, stack, failed, next ) {
 							failed ( err );
 							console.log ( err );
 						} else {
+							conn.release ();
 							next ();
 						}
 					} );
@@ -172,11 +175,10 @@ exports.init = function init ( database ) {
 				conn.beginTransaction ( function ( err ) {
 					if ( err ) {
 						error ( err );
-						console.log ( err );
 					} else {
 						console.log ( 'unstacking' );
 						unstackQueries ( conn, stack, error, then );
-						conn.release ();	// release back to connection pool
+						//conn.release ();	// release back to connection pool
 					}
 				} );
 			}

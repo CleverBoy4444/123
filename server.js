@@ -22,14 +22,14 @@ var express = require ( 'express' ),
 	},
 	sessionStore,
 	con = require ( './console/console.js' ),
-	initDatabase = require ( './init.js' );
+	initForum = require ( './init.js' );
 
 console.log ( 'Running on Node version', process.version );
 
 // init db here, if anything fails we have no server
-initDatabase ( db_connection, function callback ( err, result ) {
+initForum ( db_connection, function callback ( err, result ) {
 	if ( err ) {
-		con.error ( err.message );
+		con.error ( err );
 		con.message ( 'shutting down server...' );
 		server.close ();
 		process.exit ( 1 );
@@ -37,7 +37,7 @@ initDatabase ( db_connection, function callback ( err, result ) {
 	}
 	db = result;
 	
-	con.message ( 'creating session store, engine mysql ( session table created for ' + db_connection.database + ')' );
+	con.message ( 'creating session table for "' + db_connection.database + '"' );
 	sessionStore = new MySqlStore ( sessionStore_options, db );
 	var serverSession = session ( {
 		secret: 'eon_forum_session',    // server side session secret
@@ -77,7 +77,7 @@ initDatabase ( db_connection, function callback ( err, result ) {
 	try {
 		server.listen( port, addr, function () {
 			con.message ( 'server ready!' );
-			con.message ( fmt ( 'application server running at %s:%s', addr.address, addr.port ) );
+			con.message ( fmt ( 'application server running at %s:%s', addr, port ) );
 		} );
 	} catch ( e ) {
 		con.warn ( fmt ( 'Server may already be running at %s:%s', addr, port ) );

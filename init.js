@@ -7,13 +7,20 @@ function wrapError ( err ) {
 	return new Error ( con.err + colors.fail ( ' ' + err.message ) );
 }
 
-module.exports = function configure ( options, callback ) {
-	var db = options.database,
-		connection = mysql.createConnection ( {
+module.exports = function init ( options, callback ) {
+	var db_name = options.database,
+		db_options = {
 			host: options.host,
 			user: options.user,
 			password: options.password
-		} );
+		},
+		db_pool_entry = {
+			connectionLimit : 10,
+			host: process.env.IP || 'localhost',
+			user: process.env.C9_USER || 'root',
+			password: options.password
+		},
+		connection = mysql.createConnection ( db_options );
 	
 	con.message ( 'initalizing database connection...' );
 	connection.connect ( function ( err ) {
@@ -41,75 +48,85 @@ module.exports = function configure ( options, callback ) {
 				con.message ( 'version ok - ' + version );
 			}
 			
-			con.message ( 'checking database exists "' + db + '"...' );
+			con.message ( 'checking database exists "' + db_name + '"...' );
 			
-			connection.query ( 'select schema_name from information_schema.schemata where schema_name = "' + db + '"', function ( err, results, fields ) {
+			connection.query ( 'select schema_name from information_schema.schemata where schema_name = "' + db_name + '"', function ( err, results, fields ) {
 				if ( err ) {
+					console.log ( 'init:55', err );
 					callback ( wrapError ( err ) );
 					return;
 				}
 				
-				function getPool ( err, pool ) {
+				function getPool () {
 					
-					if ( err ) {
-						callback ( err );
-						return;
-					}
+					con.message ( 'found database "' + db_name + '", closing connnection ' + id + '...' );
 					
-					if ( pool ) {
-						callback ( null, pool );
-					} else {
-						con.message ( 'found database "' + db + '", closing connnection ' + id + '...' );
+					connection.end ( function ( err ) {
+						if ( err ) {
+							callback ( wrapError ( err ) );
+							return;
+						}
 						
-						connection.end ( function ( err ) {
+						con.message ( 'closed connection ' + id );
+						con.message ( 'establishing connection pool with database "' + db_name + '"...' );
+						var pool = mysql.createPool ( options );
+						pool.getConnection ( function ( err, connection ) {
 							if ( err ) {
 								callback ( wrapError ( err ) );
 								return;
 							}
 							
-							con.message ( 'closed connection ' + id );
-							con.message ( 'establishing connection pool with database "' + db + '"...' );
-							var pool = mysql.createPool ( options );
-							pool.getConnection ( function ( err, connection ) {
+							connection.query ( 'set names "utf8"', function ( err, results, fields ) {
 								if ( err ) {
 									callback ( wrapError ( err ) );
 									return;
 								}
 								
-								connection.query ( 'set names "utf8"', function ( err, results, fields ) {
-									if ( err ) {
-										callback ( wrapError ( err ) );
-										return;
-									}
-									
-									con.message ( 'connection pool was successful, starting app...' );
-									callback ( null, pool );
-								} );
+								con.message ( 'connection pool was successful, starting app...' );
+								callback ( null, pool );
 							} );
 						} );
-					}
+					} );
 				}
 				
 				function log ( message ) {
 					con.message ( message );
 				}
 				
-				function error ( data, err ) {
-					con.message ( data );
+				function error ( err, data ) {
+					console.log ( data );
+					//con.message ( data );
 					callback ( wrapError ( err ) );
 				}
 				
 				if ( results.length === 0 ) {
-					var pool = mysql.createPool ( options );
 					
-					con.warn ( 'database "' + db + '" not found...' );
+					con.warn ( 'database "' + db_name + '" not found...' );
 					
 					prompt.start ();
 					prompt.get ( [ {
 						name: 'db',
-						description: colors.caution ( 'create database "' + db + '"?' ),
+						description: colors.caution ( 'create database "' + db_name + '"?' ),
 						"default": 'n'
 					} ], function ( err, result ) {
+						
+						var pool = mysql.createPool ( db_pool_entry );
+								
+						function next ( err ) {
+							if ( err ) {
+								error ( err );
+							} else {
+								con.message ( 'closing db config pool...' );
+								pool.end ( function ( err ) {
+									if ( err ) {
+										error ( err );
+									} else {
+										con.message ( 'establishing live pooling connection for ' + options.database + '...' );
+										getPool ();
+									}
+								} );
+							}
+						}
 						
 						if ( err ) {
 							callback ( wrapError ( err ) );
@@ -118,12 +135,12 @@ module.exports = function configure ( options, callback ) {
 						
 						if ( result.db.toLowerCase () === 'y' ) {
 							try {
-								require ( './config.js' ) ( pool, db, getPool, error, log );
+								require ( './config.js' ) ( pool, db_name, next, error, log );
 							} catch ( e ) {
 								callback ( e );
 							}
 						} else {
-							callback ( wrapError ( { message: 'cannot create database "' + db + '", contact system administrator' } ) );
+							callback ( wrapError ( { message: 'database creation cancelled by user "' + db_name + '", goodbye.' } ) );
 						}
 					} );
 				} else {

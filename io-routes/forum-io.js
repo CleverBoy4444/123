@@ -167,6 +167,8 @@ module.exports = function ( server, db, io ) {
 								data.room = room;
 								data.userid = user.id;
 								data.username = user.name;
+								
+								console.log ( 'no room?', user );
 							}
 						}
 						

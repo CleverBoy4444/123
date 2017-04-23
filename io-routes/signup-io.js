@@ -53,6 +53,7 @@ module.exports = function ( server, db, io ) {
                                             var session = socket.request.session;
                                             
                                             session.user = {
+                                                id: result.insertId,
                                                 name: username,
                                                 login: true
                                             };
