@@ -67,7 +67,9 @@ a link to the external url that will bring you to the forum web page - something
 When updates to the forum come available, assuming you have no conflicting, custom features written in your workspace, you can simply change to the forum
 folder from the console then run the command:
 
-    git rebase origin/master
+    git remote add upstream https://github.com/EricBalingit/c9-forum-and-chat
+    git fetch upstream
+    git rebase upstream/master
 
 This is the recommended way to update your workspace forum ( even if you have no
 intention of changing any of the code ), since this will fetch everything from the current release and overwrite onto that any changes you have made to the configuration files.  If anythign goes wrong, cloning, updating and or deleting all of the code will not affect any of the content in your database ( that stays in your workspace and gets created only as needed and then only ever written to
