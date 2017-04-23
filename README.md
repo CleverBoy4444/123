@@ -72,7 +72,7 @@ folder from the console then run the command:
     git rebase upstream/master
 
 This is the recommended way to update your workspace forum ( even if you have no
-intention of changing any of the code ), since this will fetch everything from the current release and overwrite onto that any changes you have made to the configuration files.  If anythign goes wrong, cloning, updating and or deleting all of the code will not affect any of the content in your database ( that stays in your workspace and gets created only as needed and then only ever written to
+intention of changing any of the code ), since this will fetch everything from the current release and overwrite onto that any changes you have made to the configuration files.  If anything goes wrong, cloning, updating and or deleting all of the code will not affect any of the content in your database ( that stays in your workspace and gets created only as needed and then only ever written to
 by the forum software ).
 
 So if you try to update and it does not work for any reason, or anything goes terribly wrong with the code, no need to panic, just ask a question on github ( under issues ) or ask on stackoverflow and work through it until the issues are resolved.  Then your forum will come back up with all of your content.  There will be no breaking changes to the forum software which affect what may be put into or taken out of your database.
