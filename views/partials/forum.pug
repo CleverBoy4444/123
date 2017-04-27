@@ -1,6 +1,11 @@
 append content
 	.flex-fill.flex-parent.row.column-item.layout-row
 		.flex-spaced.row-item.flex-parent.column
+			#return.flex-none.flex-parent.row.layout-row.hidden
+				.flex-spaced.align-left
+					h6.the-article.link Return to Category
+				.flex-spaced.align-right
+					h6.all-articles.link Return to All Categories
 			.flex-fill.scroll-parent.inset
 				// #content-column.scroll-wrapper
 				.scroll-wrapper
@@ -12,9 +17,6 @@ append content
 						#forum-more.more-group.flex-center.flex-parent.row.hidden
 							h6.count
 							h6.more.link.row-item More
-						#return.flex-none.flex-parent.row.layout-row.hidden
-							h6.the-category.link.flex-shared.center Return to Category
-							h6.all-categories.link.flex-shared.center Return to All Categories
 		.flex-spaced.row-item.flex-parent.column
 			#forum-input.flex-fill.flex-parent.column
 				#user-post.flex-fill.flex-parent.column.column-item
@@ -30,7 +32,7 @@ append content
 				#user-preview.flex-fill.flex-parent.column.column-item.hidden
 					h3.column-item.center Preview Content
 					// #preview-parent.column-item.flex-fill.scroll-parent
-					.column-item.flex-fill.scroll-parent
+					.column-item.flex-fill.scroll-parent.inset
 						.scroll-wrapper.flex-none.flex-parent.column
 							#preview-content.scroll-content.flex-fill
 							.flex-none.flex-parent.row.layout-row.flex-center

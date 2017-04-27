@@ -3,6 +3,236 @@
 	
 // Application {
 	
+	function showAllArticles ( app, article ) {
+		
+		var $id = app.$ui.id,
+			rank = JSON.parse ( $id.articleView.find ( '.article' ).attr ( 'data-rank' ) ),
+			location = { to: 'category' },
+			fromCategory = article === undefined,
+			collection = fromCategory ? app.articles.category : article.topics,
+			sort = $id.order.find ( '[selected]' ).val (),
+			listen = `category${fromCategory ? '' : '_' + article.id}`,
+			from,
+			fromData;
+		
+		if ( $id.userTitle.val() || $id.userBody.val () ) {
+			if ( $id.userPost.hasClass ( 'hidden' ) ) {
+				$id.preview.trigger ( 'click' );
+				$id.userBody.focus ();
+			}
+			
+			var discard = confirm ( 'You have unsaved changes in your current submission.\n\nDo you want to discard your changes?' );
+			
+			if ( discard ) {
+				$id.userTitle.val ( '' );
+				$id.userBody.val ( '' );
+				$id.previewContent.empty ();
+			} else {
+				return;
+			}
+		}
+		
+		sort = `sort${sort[0].toUpperCase () + sort.slice ( 1 )}`;
+		
+		$id.return.addClass ( 'hidden' );
+		$id.return.find ( '.the-article' ).addClass ( 'hidden' );
+		$id.articleStubs.addClass ( 'hidden' );
+		$id.articleView.addClass ( 'hidden' );
+		$id.forumMore.addClass ( 'hidden' );
+		
+		if ( fromCategory ) {
+			from = 'category';
+			fromData = {
+				from,
+				rank: { type: from }
+			};
+		} else {
+			from = 'topic';
+			fromData = {
+				from,
+				rank: { type: from }
+			};
+			location.references = fromData.references = { category: article.id };
+			fromData.rank.category = rank.category;
+			$id.return.find ( '.all-articles' )
+				.text ( 'Return to All Categories' )
+				.attr ( 'data-rank', JSON.stringify ( { type: 'category' } ) );
+			$id.return.find ( '.the-article' )
+				.text ( 'Return to Category' )
+				.attr ( 'data-rank', JSON.stringify ( { type: 'category', category: rank.category } ) )
+				.removeClass ( 'hidden' );
+			$id.return.removeClass ( 'hidden' );
+		}
+		
+		$id.forumInput.addClass ( 'hidden' );
+		$id.userPreview.addClass ( 'hidden' );
+		$id.userPost.addClass ( 'hidden' );
+		$id.inputHeading.text ( `New ${fromCategory ? 'Category' : 'Topic'}` );
+		if ( fromCategory ) {
+			$id.inputTitle.addClass ( 'hidden' );
+		} else {
+			$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+			$id.titleSection.removeClass ( 'hidden' );
+		}
+		$id.forumInput.attr ( 'data-location', location );
+		$id.userPost.removeClass ( 'hidden' );
+		$id.forumInput.removeClass ( 'hidden' );
+		$id.userTitle.focus ();
+		
+		$id.articleStubs.empty ();
+		app.appendArticles ( $id.articleStubs, $id.templateStub, collection, true, sort );
+		$id.articleStubs.removeClass ( 'hidden' );
+		
+		$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} ${fromCategory ? 'categories' : 'topics'}` );
+		$id.forumMore.attr ( 'data-from', JSON.stringify ( fromData ) );
+		
+		if ( collection.length < collection.total ) {
+			$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
+		} else {
+			$id.forumMore.find ( '.more' ).addClass ( 'hidden' );
+		}
+		
+		$id.forumMore.removeClass ( 'hidden' );
+		
+		app.listenChannel ( listen );
+	}
+	
+	function showArticle ( app, rank ) {
+		var $id = app.$ui.id,
+			categories = app.articles.category,
+			category = categories [ rank.category ],
+			article = 'topic' in rank ? category.topics [ rank.topic ] : category,
+			location = { to: 'post', references: { category: article.id } },
+			comments, topics,
+			collection, listen,
+			isTopic = 'topic' in rank,
+			sort = $id.order.find ( '[selected]' ).val ();
+			// ,
+			// ref = 'topic' in rank ? { category: category.id, topic: category.topics [ rank.topic ].id } : 'category' in rank ? { category: category.id } : null;
+		
+		sort = `sort${sort[0].toUpperCase () + sort.slice ( 1 )}`;
+					
+		if ( 'topic' in rank ) {
+			article = app.articles.category [ rank.category ].topics [ rank.topic ];
+			location = { to: 'post', references : { category: category.id, topic: article.id } };
+			comments = { from: 'post', references: { category: category.id, topic: article.id }, rank: { type: 'post', category: rank.category, topic: rank.topic } };
+			listen = `category_${category.id}-topic_${article.id}`;
+		} else {
+			article = app.articles.category [ rank.category ];
+			location = { to: 'post', references: { category: article.id } };
+			topics = { from: 'topic', references: { category: article.id }, rank: { type: 'topic', category: rank.category } };
+			comments = { from: 'post', references: { category: article.id, topic: null }, rank: { type: 'post', category: rank.category } };
+			listen = `category_${article.id}`;
+		}
+		
+		if ( $id.userTitle.val() || $id.userBody.val () ) {
+			if ( $id.userPost.hasClass ( 'hidden' ) ) {
+				$id.preview.trigger ( 'click' );
+			}
+			
+			$id.userBody.focus ();
+			
+			var discard = confirm ( 'You have unsaved changes in your current submission.\n\nDo you want to discard your changes?' );
+			
+			if ( discard ) {
+				$id.userTitle.val ( '' );
+				$id.userBody.val ( '' );
+				$id.previewContent.empty ();
+			} else {
+				return;
+			}
+		}
+		
+		$id.return.addClass ( 'hidden' );
+		$id.articleStubs.addClass ( 'hidden' );
+		$id.articleView.addClass ( 'hidden' );
+		$id.forumMore.addClass ( 'hidden' );
+		
+		if ( topics ) {
+			$id.return.find ( '.all-articles' )
+				.text ( 'Return to All Categories' )
+				.attr ( 'data-rank', JSON.stringify ( { type: 'category' } ) );
+			$id.return.find ( '.the-article' )
+				.addClass ( 'hidden' );
+		} else {
+			$id.return.find ( '.all-articles' )
+				.text ( 'Return to Topics' )
+				.attr ( 'data-rank', JSON.stringify ( { type: 'topic', category: rank.category } ) );
+			$id.return.find ( '.the-article' )
+				.text ( 'Return to Category' )
+				.attr ( 'data-rank', JSON.stringify ( { type: 'category', category: rank.category } ) )
+				.removeClass ( 'hidden' );
+		}
+		
+		$id.return.removeClass ( 'hidden' );
+		
+		$id.forumInput.addClass ( 'hidden' );
+		$id.userPreview.addClass ( 'hidden' );
+		$id.userPost.addClass ( 'hidden' );
+		$id.inputHeading.text ( `Reply to ${isTopic ? 'Topic' : 'Category'}` );
+		$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+		$id.titleSection.removeClass ( 'hidden' );
+		$id.forumInput.attr ( 'data-location', location );
+		$id.userPost.removeClass ( 'hidden' );
+		$id.userTitle.focus ();
+		$id.forumInput.removeClass ( 'hidden' );
+		
+		collection = article.posts;
+		
+		$id.articleView.empty ();
+		app.appendArticles ( $id.articleView, $id.templateArticle, [ article ], false, sort );
+		app.listenChannel ( listen );
+		
+		$id.articleView.find ( '.show-comments' ).addClass ( 'hidden' );
+		$id.articleView.find ( '.show-topics' ).addClass ( 'hidden' );
+		
+		if ( !( 'total' in collection ) ) {
+			//console.log ( JSON.stringify ( fromPost ) );
+			//console.log ( JSON.stringify ( collection ) );
+			app.requestPage ( comments, function () {
+				//console.log ( JSON.stringify ( collection ) );
+				$id.articleView.find ( '.show-comments' )
+					.text ( `Show Comments ( ${collection.total} )` )
+					.removeClass ( 'hidden' );
+				
+				comments.index = collection.length;
+				$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} Comments` );
+				$id.forumMore.attr ( 'data-from', JSON.stringify ( comments ) );
+				
+				if ( collection.length < collection.total ) {
+					$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
+				} else {
+					$id.forumMore.find ( '.more' ).addClass ( 'hidden' );
+				}
+				
+				//$id.forumMore.removeClass ( 'hidden' );
+			}, true );
+		} else {
+			app.appendArticles ( $id.articleView.find ( '.replies' ), $id.templateReply, collection, false, sort );
+			$id.articleView.find ( '.show-comments' )
+				.text ( `Show Comments ( ${collection.total} )` )
+				.removeClass ( 'hidden' );
+		}
+		
+		if ( topics ) {
+			if ( ! ( 'total' in article.topics ) ) {
+				app.requestPage ( topics, function () {
+					$id.articleView.find ( '.show-topics' )
+						.text ( `Show Topics ( ${article.topics.total} )` )
+						.removeClass ( 'hidden' );
+				}, false );
+			} else {
+				$id.articleView.find ( '.show-topics' )
+					.text ( `Show Topics ( ${article.topics.total} )` )
+					.removeClass ( 'hidden' );
+			}
+		} else {
+			$id.articleView.find ( '.show-topics' ).addClass ( 'hidden' );
+		}
+		
+		$id.articleView.removeClass ( 'hidden' );
+	}
+	
 	new Application (
 		
 		socket,
@@ -41,8 +271,28 @@
 		
 		// ui handles by id
 		{
+			"return": {
+				click: [ '.the-article', function ( event ) {
+					let app = event.data,
+						rank = JSON.parse ( $ ( this ).attr ( 'data-rank' ) );
+					
+					showArticle ( app, rank );
+				}, '.all-articles', function ( event ) {
+					let app = event.data,
+						rank = JSON.parse ( $ ( this ).attr ( 'data-rank' ) ),
+						article;
+						
+						if ( 'category' in rank ) {
+							article = app.articles.category [ rank.category ];
+						}
+						
+					showAllArticles ( app, article );
+				} ]	
+			},
 			forumContent: {
 				click: [ '.stub .title', function ( event ) {
+					
+					/*
 					let $stub = $ ( this ).parent (),
 						app = event.data,
 						$id = app.$ui.id,
@@ -110,6 +360,8 @@
 							let $replies = $id.articleView.find ( '.replies' ),
 								collection = article.posts,
 								$more = $replies.parent ().find ( '.more-group' );
+							
+							$more.attr ( 'data-from', JSON.stringify ( $.extend ( {}, comments, { index: collection.length } ) ) );
 							$replies.addClass ( 'hidden' ).empty ();
 							app.appendArticles ( $replies, $id.templateReply, article.posts, false, app [ sort ] );
 							$id.articleView.find ( '.show-comments' ).text ( `Show Comments ( ${article.posts.total} )` );
@@ -140,27 +392,39 @@
 					} else {
 						$id.articleView.find ( '.show-topics' ).addClass ( 'hidden' );
 					}
+					*/
+					
+					let app = event.data,
+						$stub = $ ( this ).parent (),
+						rank = JSON.parse ( $stub.attr ( 'data-rank' ) );
+					
+					showArticle ( app, rank );
 					
 				}, '.show-comments', function ( event ) {
 					let app = event.data,
 						$id = app.$ui.id,
 						$showComments = $ ( this ),
-						$replies = $showComments.parents ( '.comments' ).find ( '.replies' ),
-						$article = $showComments.parents ( '.article' ),
+						$replies = $id.articleView.find ( '.replies' ),
+						$article = $id.articleView.find ( '.article' ),
 						rank = JSON.parse ( $article.attr ( 'data-rank' ) ),
 						article = 'topic' in rank ? app.articles.category [ rank.category ].topics [ rank.topic ] : app.articles.category [ rank.category ],
 						collection = article.posts,
-						$more = $id.articleView.find ( '.more-group' );
+						$more = $id.forumMore;
 					
 					if ( $replies.hasClass ( 'hidden' ) ) {
 						$showComments.text ( 'Hide Comments' );
 						$replies.removeClass ( 'hidden' );
+						
+						$more.addClass ( 'hidden' );
+						
+						$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} Comments` );
 						if ( collection.length < collection.total ) {
-							$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} comments` );
-							$more.removeClass ( 'hidden' );
+							$more.find ( '.more' ).removeClass ( 'hidden' );
 						} else {
-							$more.addClass ( 'hidden' );
+							$more.find ( '.more' ).addClass ( 'hidden' );
 						}
+						
+						$more.removeClass ( 'hidden' );
 					} else {
 						$showComments.text ( `Show Comments ( ${article.posts.total} )` );
 						$more.addClass ( 'hidden' );
@@ -169,16 +433,24 @@
 				}, '.show-topics', function ( event ) {
 					let app = event.data,
 						$id = app.$ui.id,
-						$article = $ ( this ).parents ( '.article' ),
+						$article = $id.articleView.find ( '.article' ),
 						rank = JSON.parse ( $article.attr ( 'data-rank' ) ),
-						id = Number ( $article.attr ( 'data-id' ) ),
-						ref = { category: id },
-						location = { to: 'topic', references: ref },
+						article = app.articles.category [ rank.category ];
+					
+					showAllArticles ( app, article );
+					/*
+					let app = event.data,
+						$id = app.$ui.id,
+						$article = $id.articleView.find ( '.article' ),
+						rank = JSON.parse ( $article.attr ( 'data-rank' ) ),
 						article = app.articles.category [ rank.category ],
+						ref = { category: article.id },
+						location = { to: 'topic', references: ref },
 						collection = article.topics,
 						$more = $id.forumMore,
-						listen = `category_${id}`;
+						listen = `category_${article.id}`;
 					
+					$more.attr ( 'data-from', JSON.stringify ( { from: 'topic', references: ref, index: collection.length, rank: rank } ) );
 					$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 					$id.inputHeading.text ( 'New Topic in Category' );
 					$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
@@ -203,19 +475,32 @@
 						$more.addClass ( 'hidden' );
 					}
 					
-				}, '.return, .all-categories', function ( event ) {
-					// return from category article to category stubs
-					// return from topic article to topic stubs
-					// return from to all categories ( from anywhere )
+					*/
+					
+				},
+				
+				/*
+				'.all-categories', function allCategories ( event ) {
+					var app = event.data,
+						$id = app.$ui.id,
+						$more = $id.forumMore,
+						location = { to: 'category' },
+						sort = $id.order.find ( '[selected]' ).val (),
+						collection = app.articles.category;
+					
+					
+				},'.all', function ( event ) {
+					// return to all categories ( if this is the all categories link )
 					
 					var app = event.data,
 					    $id = app.$ui.id,
-					    location = JSON.parse ( $id.forumInput.attr ( 'data-location' ) ),
 					    $this = $ ( this ),
-					    articles, newLocation,
+					    newLocation, from,
 					    collection = app.articles.category,
 					    $more = $id.forumMore,
-					    sort = $id.order.find ( '[selected]' ).val ();
+					    sort = $id.order.find ( '[selected]' ).val (),
+					    rank,
+					    references;
 					
 					sort = `sort${sort[0].toUpperCase () + sort.slice ( 1 )}`;
 					
@@ -231,13 +516,15 @@
 						$id.inputTitle.addClass ( 'hidden' );
 						app.listenChannel ( 'category' );
 						
-						articles = app.articles.category;
+						collection = app.articles.category;
+						from = 'category';
+						rank = { type: from };
 						newLocation = '{"to":"category"}';
 					
 					// all topics from topic
 					} else {
-						let rank = JSON.parse ( $id.articleView.find ( '.article' ).attr ( 'data-rank' ) ),
-							article = app.articles.category [ rank.category ],
+						let arank = JSON.parse ( $id.articleView.find ( '.article' ).attr ( 'data-rank' ) ),
+							article = app.articles.category [ arank.category ],
 							title = $ ( article.title ).html ();
 						
 						$id.inputHeading.text ( 'New Topic' );
@@ -245,8 +532,11 @@
 						$id.inputTitle.removeClass ( 'hidden' );
 						app.listenChannel ( 'category_'+article.id );
 						
-						articles = article.topics;
-						newLocation = `{"to":"category","category":${article.id}}`;
+						collection = article.topics;
+						from = 'topic';
+						rank = { type: 'category', category: arank.category };
+						references = { category: article.id };
+						newLocation = `{"to":"topic","category":${article.id}}`;
 						
 						$id.return.removeClass ( 'hidden' );
 					}
@@ -259,12 +549,17 @@
 					
 					// append categories to article stubs
 					$id.articleStubs.empty ();
-					app.appendArticles ( $id.articleStubs, $id.templateStub, articles, true, app [ sort ] );
+					app.appendArticles ( $id.articleStubs, $id.templateStub, collection, true, app [ sort ] );
 					$id.articleStubs.removeClass ( 'hidden' );
 					$id.forumInput.attr ( 'data-location', newLocation );
 					
+					let moreFrom = { from: from, index: collection.length, rank: rank };
+					if ( references ) {
+						moreFrom.references = references;
+					}
+					$more.attr ( 'data-from', JSON.stringify ( moreFrom ) );
 					if ( collection.length < collection.total ) {
-						$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} categories` );
+						$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} ${from}` );
 						$more.removeClass ( 'hidden' );
 					} else {
 						$more.addClass ( 'hidden' );
@@ -322,16 +617,54 @@
 					} else {
 						$more.addClass ( 'hidden' );
 					}
-				}, '.more', function ( event ) {
-					let $parent = $ ( this ).parent (),
-						app = event.data,
+				}, */
+				'.more', function ( event ) {
+					let app = event.data,
 						$id = app.$ui.id,
-						location = JSON.parse ( $id.forumInput.attr ( 'location' ) ),
-						params = { from: location.to };
+						$more = $id.forumMore,
+						from = JSON.parse ( $more.attr ( 'data-from' ) ),
+						rank = from.rank,
+						collection = app.articles.category,
+						ofType;
 					
-					if ( 'references' in location ) {
-						params.references = location.references;
+					if ( 'category' in rank ) {
+						collection = collection [ rank.category ];
 					}
+					
+					if ( 'topic' in rank ) {
+						collection = collection.topics [ rank.topic ];
+					}
+					
+					if ( 'category' === rank.type ) {
+						ofType = 'Categories';
+					}
+					
+					if ( 'topic' === rank.type ) {
+						collection = collection.topics;
+						ofType = 'Topics';
+					}
+					
+					if ( 'post' === rank.type ) {
+						collection = collection.posts;
+						ofType = 'Comments';
+					}
+					
+					app.requestPage (from, function () {
+						$more.addClass ( 'hidden' );
+						
+						$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} ${ofType}` );
+						from.index = collection.length;
+						$more.attr ( 'data-from', JSON.stringify ( from ) );
+						
+						if ( collection.length < collection.total ) {
+							$more.find ( '.more' ).removeClass ( 'hidden' );
+						} else {
+							$more.find ( '.more' ).addClass ( 'hidden' );
+						}
+						
+						$more.removeClass ( 'hidden' );
+						
+					}, true );
 				} ]
 			},
 			
@@ -571,14 +904,24 @@
 			app.joinChat ( 'Forum' );
 			
 			$id.forumInput.attr ( 'data-location', JSON.stringify ( { to: 'category' } ) );
-			app.requestPage ( { from: 'category', rank: { type: 'category' } } );
-			app.listenChannel ( 'category' );
-			
-			$id.return.addClass ( 'hidden' );
+			let from = { from: 'category', rank: { type: 'category' } };
+			app.requestPage ( { from: 'category', rank: { type: 'category' } }, function () {
+				var collection = app.articles.category;
+				
+				$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} Categories` );
+				from.index = collection.length;
+				$id.forumMore.attr ( 'data-from', JSON.stringify ( from ) );
+				if ( collection.length < collection.total ) {
+					$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
+				} else {
+					$id.forumMore.find ( '.more' ).addClass ( 'hidden' );
+				}
+				$id.forumMore.removeClass ( 'hidden' );
+				
+				app.listenChannel ( 'category' );
+			}, true );
 			
 			$id.userTitle.focus ();
-			
-			console.log ( app.articles );
 		}
 	);
 	
@@ -925,14 +1268,11 @@
 					return { collection, extend, container, template };
 				},
 				
-				requestPage: function ( params ) {
-					
-					// if stuff not already here??? ( before making this call )
+				requestPage: function ( params, callback, append ) {
 					
 					var $id = _$ui.id;
 					
 					let {	from, rank, references, index = 0, limit = _app.requestLimit,
-							// use $select ( '[selected]' ), but those must toggle first
 							order = 'oldest'
 						} = params,
 						data = { from, index, limit };
@@ -956,16 +1296,21 @@
 							collection.received = res.timestamp;
 							collection.total = res.total;
 							
-							if ( container ) {
+							if ( container && append ) {
 								//container.attr ( { 'data-received': res.timestamp, 'data-total': res.total } );
 								_app.appendArticles ( container, template, articles, true, sort );
+								if ( container === _app.$ui.id.articleStubs && articles.length === 0 ) {
+									container.text ( `( No ${ from === 'category' ? 'categories' : 'topics' } yet )` );
+								}
 							} else {
 								$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 							}
 							
-							if ( container === _app.$ui.id.articleStubs && articles.length === 0 ) {
-								container.text ( `( No ${ from === 'category' ? 'categories' : 'topics' } yet )` );
+							if ( 'function' === typeof callback ) {
+								callback ();
 							}
+							
+							/*
 							
 							if ( container.hasClass ( 'replies' ) ) {
 								if ( container.hasClass ( 'hidden' ) ) {
@@ -1003,6 +1348,7 @@
 									$more.addClass ( 'hidden' );
 								}
 							}
+							*/
 						}
 					} );
 				},
@@ -1070,9 +1416,11 @@
 						socket.emit ( 'leave', _app.listening, _app.noop );
 					}
 					
-					socket.emit ( 'join', room, function ( id ) {
-						_app.listening = id;
-					} );
+					if ( room ) {
+						socket.emit ( 'join', room, function ( id ) {
+							_app.listening = id;
+						} );
+					}
 				},
 				
 				joinChat: function ( room, title, owner ) {

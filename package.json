@@ -4,8 +4,9 @@
     "description": "node, express, socket-io basic live forum for internal use",
     "repository": {
         "type": "git",
-        "url": "https://github.com/EricBalingit/eon-forum-and-chat"
+        "url": "https://github.com/EricBalingit/c9-forum-and-chat"
     },
+    "license": "ICU",
     "dependencies": {
         "express": "4.14.1",
         "pug": "2.0.0-beta11",

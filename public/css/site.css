@@ -173,6 +173,10 @@ a:visited, .link.visited { color: #789; text-decoration: underline; }
 
 .right { float: right; }
 
+.align-left { text-align: left; }
+
+.align-right { text-align: right; }
+
 .center { text-align: center; }
 
 .border-north { border-top: 1px solid darkgray; }
