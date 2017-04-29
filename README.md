@@ -12,13 +12,17 @@ Minimal, front-end, external javascript and css are located the `public` folder.
 
 Note: As of 4/23/2017 there appears to be a dispute between the owner of the Remarkable github repository and contributors to the project.  The version of Remarkable provide with this project is contained in the project so that any future issues regarding the current dispute will not affect the function of the current software.  If better options come available, those may be pursued in future releases.
 
-## Know Issues
+## Known Issues
 
-Will multiple users/collaborators in a project, sometimes things get left open
+With multiple users/collaborators in a project, sometimes things get left open
 or different people show up, do stuff then leave.  If you run the forum and see
 a message like:
 
-    ECONN: REFUSED TO CONNECT
+    ECONNREFUSED
+
+OR
+
+    ECONN: RESET
 
 Just run this command in the console to restart the mysql server:
 
