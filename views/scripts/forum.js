@@ -7,13 +7,13 @@
 		
 		var $id = app.$ui.id,
 			rank = JSON.parse ( $id.articleView.find ( '.article' ).attr ( 'data-rank' ) ),
-			location = { to: 'category' },
 			fromCategory = article === undefined,
+			location = !fromCategory ? { to: 'topic' } : { to: 'category' },
 			collection = fromCategory ? app.articles.category : article.topics,
 			sort = $id.order.find ( '[selected]' ).val (),
 			listen = `category${fromCategory ? '' : '_' + article.id}`,
-			from,
-			fromData;
+			fromSource,
+			from;
 		
 		if ( $id.userTitle.val() || $id.userBody.val () ) {
 			if ( $id.userPost.hasClass ( 'hidden' ) ) {
@@ -28,6 +28,7 @@
 				$id.userBody.val ( '' );
 				$id.previewContent.empty ();
 			} else {
+				$id.userBody.focus ();
 				return;
 			}
 		}
@@ -41,19 +42,19 @@
 		$id.forumMore.addClass ( 'hidden' );
 		
 		if ( fromCategory ) {
-			from = 'category';
-			fromData = {
-				from,
-				rank: { type: from }
+			fromSource = 'category';
+			from = {
+				fromSource,
+				rank: { type: fromSource }
 			};
 		} else {
-			from = 'topic';
-			fromData = {
-				from,
-				rank: { type: from }
+			fromSource = 'topic';
+			from = {
+				fromSource,
+				rank: { type: fromSource }
 			};
-			location.references = fromData.references = { category: article.id };
-			fromData.rank.category = rank.category;
+			location.references = from.references = { category: article.id };
+			from.rank.category = rank.category;
 			$id.return.find ( '.all-articles' )
 				.text ( 'Return to All Categories' )
 				.attr ( 'data-rank', JSON.stringify ( { type: 'category' } ) );
@@ -63,6 +64,8 @@
 				.removeClass ( 'hidden' );
 			$id.return.removeClass ( 'hidden' );
 		}
+		
+		from.index = collection.length;
 		
 		$id.forumInput.addClass ( 'hidden' );
 		$id.userPreview.addClass ( 'hidden' );
@@ -74,7 +77,7 @@
 			$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 			$id.titleSection.removeClass ( 'hidden' );
 		}
-		$id.forumInput.attr ( 'data-location', location );
+		$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 		$id.userPost.removeClass ( 'hidden' );
 		$id.forumInput.removeClass ( 'hidden' );
 		$id.userTitle.focus ();
@@ -84,7 +87,7 @@
 		$id.articleStubs.removeClass ( 'hidden' );
 		
 		$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} ${fromCategory ? 'categories' : 'topics'}` );
-		$id.forumMore.attr ( 'data-from', JSON.stringify ( fromData ) );
+		$id.forumMore.attr ( 'data-from', JSON.stringify ( from ) );
 		
 		if ( collection.length < collection.total ) {
 			$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
@@ -139,6 +142,7 @@
 				$id.userBody.val ( '' );
 				$id.previewContent.empty ();
 			} else {
+				$id.userBody.focus ();
 				return;
 			}
 		}
@@ -171,10 +175,10 @@
 		$id.userPost.addClass ( 'hidden' );
 		$id.inputHeading.text ( `Reply to ${isTopic ? 'Topic' : 'Category'}` );
 		$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
-		$id.titleSection.removeClass ( 'hidden' );
-		$id.forumInput.attr ( 'data-location', location );
+		$id.titleSection.addClass ( 'hidden' );
+		$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 		$id.userPost.removeClass ( 'hidden' );
-		$id.userTitle.focus ();
+		//$id.userTitle.focus ();
 		$id.forumInput.removeClass ( 'hidden' );
 		
 		collection = article.posts;
@@ -186,32 +190,29 @@
 		$id.articleView.find ( '.show-comments' ).addClass ( 'hidden' );
 		$id.articleView.find ( '.show-topics' ).addClass ( 'hidden' );
 		
-		if ( !( 'total' in collection ) ) {
-			//console.log ( JSON.stringify ( fromPost ) );
-			//console.log ( JSON.stringify ( collection ) );
-			app.requestPage ( comments, function () {
-				//console.log ( JSON.stringify ( collection ) );
-				$id.articleView.find ( '.show-comments' )
-					.text ( `Show Comments ( ${collection.total} )` )
-					.removeClass ( 'hidden' );
-				
-				comments.index = collection.length;
-				$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} Comments` );
-				$id.forumMore.attr ( 'data-from', JSON.stringify ( comments ) );
-				
-				if ( collection.length < collection.total ) {
-					$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
-				} else {
-					$id.forumMore.find ( '.more' ).addClass ( 'hidden' );
-				}
-				
-				//$id.forumMore.removeClass ( 'hidden' );
-			}, true );
-		} else {
-			app.appendArticles ( $id.articleView.find ( '.replies' ), $id.templateReply, collection, false, sort );
+		function renderComments () {
 			$id.articleView.find ( '.show-comments' )
 				.text ( `Show Comments ( ${collection.total} )` )
 				.removeClass ( 'hidden' );
+			
+			comments.index = collection.length;
+			$id.forumMore.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} Comments` );
+			$id.forumMore.attr ( 'data-from', JSON.stringify ( comments ) );
+			
+			if ( collection.length < collection.total ) {
+				$id.forumMore.find ( '.more' ).removeClass ( 'hidden' );
+			} else {
+				$id.forumMore.find ( '.more' ).addClass ( 'hidden' );
+			}
+		}
+		
+		if ( !( 'total' in collection ) ) {
+			//console.log ( JSON.stringify ( fromPost ) );
+			//console.log ( JSON.stringify ( collection ) );
+			app.requestPage ( comments, renderComments, true );
+		} else {
+			app.appendArticles ( $id.articleView.find ( '.replies' ), $id.templateReply, collection, false, sort );
+			renderComments ();
 		}
 		
 		if ( topics ) {
@@ -438,6 +439,7 @@
 						article = app.articles.category [ rank.category ];
 					
 					showAllArticles ( app, article );
+					
 					/*
 					let app = event.data,
 						$id = app.$ui.id,
@@ -618,6 +620,7 @@
 						$more.addClass ( 'hidden' );
 					}
 				}, */
+				
 				'.more', function ( event ) {
 					let app = event.data,
 						$id = app.$ui.id,
@@ -776,10 +779,28 @@
 					
 					title && ( params.title = title );
 					params.body = body;
-					// TODO: configure based on UI
-					params.order = 'oldest';
+					params.order = $id.order.find ( '[selected]' ).val ();
 					
-					app.submitArticle ( params );
+					app.submitArticle ( params, function ( collection ) {
+						let $more = $id.forumMore,
+							from = JSON.parse ( $more.attr ( 'data-from' ) ),
+							type = from.rank.type,
+							ofType = 'category' === type ? 'Categories' : 'topic' === type ? 'Topics' : 'Comments';
+						
+						$more.addClass ( 'hidden' );
+						
+						$more.find ( '.count' ).text ( `Showing ${collection.length} of ${collection.total} ${ofType}` );
+						from.index = collection.length;
+						$more.attr ( 'data-from', JSON.stringify ( from ) );
+						
+						if ( collection.length < collection.total ) {
+							$more.find ( '.more' ).removeClass ( 'hidden' );
+						} else {
+							$more.find ( '.more' ).addClass ( 'hidden' );
+						}
+						
+						$more.removeClass ( 'hidden' );
+					} );
 				}
 			},
 			
@@ -1238,15 +1259,18 @@
 						{ type, category, topic, chat } = rank,
 						collection, extend, container, template;
 					
+					category = typeof category === 'undefined' ? undefined : _articles.category [ category ];
+					topic = typeof category === 'undefined' ? undefined : typeof topic === 'undefined' ? undefined : category.topics [ topic ];
+					
 					if ( type === 'post' ) {
 						if ( 'chat' in rank ) {
 							collection = _articles.chat [ chat ];
 							container = $id.userChat.hasClass ( '.hidden' ) ? null : $id.userChat.attr ( 'data-room' ) === room ? $id.userChatContent : null;
 						} else {
-							if ( ! ( 'topic' in rank ) ) {
-								collection = _articles.category [ category ].posts;
+							if ( 'topic' in rank ) {
+								collection = topic ? topic.posts : null;
 							} else {
-								collection = _articles.category [ category ].topics [ topic ].posts;
+								collection = category ? category.posts : null;
 							}
 							
 							container = $id.articleView.find ( '.replies' );
@@ -1258,7 +1282,7 @@
 							collection = _articles.category;
 							extend = { topics: [], posts: [] };
 						} else if ( type === 'topic' ) {
-							collection = _articles.category [ category ].topics;
+							collection = category ? category.topics : null;
 							extend = { posts: [] };
 						}
 						container = $id.articleStubs;
@@ -1291,19 +1315,23 @@
 								sortBy = order [ 0 ].toUpperCase () + order.slice ( 1 ),
 								sort = _app [ 'sort' + sortBy ];
 							
-							_app.cacheArticles ( collection, extend, articles, rank );
+							// if the presentation is ahead of the cache, we defer
+							// the cache until it is pulled from a request
+							if ( collection ) {
+								_app.cacheArticles ( collection, extend, articles, rank );
+								
+								collection.received = res.timestamp;
+								collection.total = res.total;
 							
-							collection.received = res.timestamp;
-							collection.total = res.total;
-							
-							if ( container && append ) {
-								//container.attr ( { 'data-received': res.timestamp, 'data-total': res.total } );
-								_app.appendArticles ( container, template, articles, true, sort );
-								if ( container === _app.$ui.id.articleStubs && articles.length === 0 ) {
-									container.text ( `( No ${ from === 'category' ? 'categories' : 'topics' } yet )` );
+								if ( container && append ) {
+									//container.attr ( { 'data-received': res.timestamp, 'data-total': res.total } );
+									_app.appendArticles ( container, template, articles, true, sort );
+									if ( container === _app.$ui.id.articleStubs && articles.length === 0 ) {
+										container.text ( `( No ${ from === 'category' ? 'categories' : 'topics' } yet )` );
+									}
+								} else {
+									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 								}
-							} else {
-								$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
 							}
 							
 							if ( 'function' === typeof callback ) {
@@ -1357,7 +1385,7 @@
 					alert ( 'apologies, page update request is not yet implemented' );
 				},
 				
-				submitArticle: function ( params ) {
+				submitArticle: function ( params, callback ) {
 					let { order } = params;
 					socket.emit ( 'request', 'submit', params, function ( err, res ) {
 						if ( err ) {
@@ -1372,11 +1400,7 @@
 								sortBy = order [ 0 ].toUpperCase () + order.slice ( 1 ),
 								sort = _app [ 'sort' + sortBy ];
 							
-							// if not all articles are displaying ( More to come )
-							// then rendering and displaying of the submission
-							// stub will be deferred until it comes up in
-							// a later page fetch
-							if ( ! ( res.rank.type in res.rank ) || collection.length === collection.total ) {
+							if ( collection && ( ! ( res.rank.type in res.rank ) || collection.length === collection.total ) ) {
 								'title' in params && ( res.title = params.title );
 								res.body = params.body;
 								
@@ -1393,7 +1417,11 @@
 									_app.appendArticles ( container, template, articles, stub, sort );
 									container.attr ( 'data-total', total );
 									if ( container.hasClass ( 'replies' ) && container.hasClass ( 'hidden' ) ) {
-										container.prev ().find ( '.show-comments' ).text ( `Show Comments ( ${total} )` )
+										container.prev ().find ( '.show-comments' ).text ( `Show Comments ( ${total} )` );
+									}
+									
+									if ( 'function' === typeof callback ) {
+										callback ( collection );
 									}
 								} else {
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
