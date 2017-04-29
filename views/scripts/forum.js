@@ -44,13 +44,13 @@
 		if ( fromCategory ) {
 			fromSource = 'category';
 			from = {
-				fromSource,
+				from: fromSource,
 				rank: { type: fromSource }
 			};
 		} else {
 			fromSource = 'topic';
 			from = {
-				fromSource,
+				from: fromSource,
 				rank: { type: fromSource }
 			};
 			location.references = from.references = { category: article.id };
