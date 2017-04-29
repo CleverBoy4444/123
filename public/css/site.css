@@ -31,6 +31,10 @@ div, ul, ol {
 	letter-spacing: 0.08em;
 }
 
+ol li {
+	padding-left: 1em;
+}
+
 input[type=button], input[type=submit] {
 	font-size: 1.1em;
 	padding: 0.1em 1em;
