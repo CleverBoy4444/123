@@ -74,7 +74,7 @@
 		if ( fromCategory ) {
 			$id.inputTitle.addClass ( 'hidden' );
 		} else {
-			$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+			$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 			$id.titleSection.removeClass ( 'hidden' );
 		}
 		$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
@@ -174,7 +174,7 @@
 		$id.userPreview.addClass ( 'hidden' );
 		$id.userPost.addClass ( 'hidden' );
 		$id.inputHeading.text ( `Reply to ${isTopic ? 'Topic' : 'Category'}` );
-		$id.inputTitle.text ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+		$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 		$id.titleSection.addClass ( 'hidden' );
 		$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 		$id.userPost.removeClass ( 'hidden' );
