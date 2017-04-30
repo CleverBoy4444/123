@@ -292,8 +292,8 @@ select {
 	content: '✓';
 }
 
-.article p {
-	margin: 0.75em 0;
+.article p, #preview-content p {
+	margin: 1.5em 0;
 }
 
 .reply p {
