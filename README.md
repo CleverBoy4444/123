@@ -1,6 +1,6 @@
 ## About
 
-This project, originally forked from lighthouse labs ( https://github.com/lighthouse-labs/node-socketio-chat ) is a user forum built for cloud9 workspaces.  None of the current code relfects the original fork, however out of respect for others whose interests in education coincide with those of this project, this source will remain as a fork of the lighthouse labs page.  Thanks for what you do lighthouse! :-)
+This project, originally forked from lighthouse labs ( https://github.com/lighthouse-labs/node-socketio-chat ) is a user forum built for cloud9 workspaces.  None of the current code reflects the original fork, however out of respect for others whose interests in education coincide with those of this project, this source will remain as a fork of the lighthouse labs page.  Thanks for what you do lighthouse! :-)
 
 ## Features
 
