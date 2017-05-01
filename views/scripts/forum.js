@@ -71,12 +71,20 @@
 		$id.userPreview.addClass ( 'hidden' );
 		$id.userPost.addClass ( 'hidden' );
 		$id.inputHeading.text ( `New ${fromCategory ? 'Category' : 'Topic'}` );
+		/*
 		if ( fromCategory ) {
 			$id.inputTitle.addClass ( 'hidden' );
 		} else {
 			$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
 			$id.titleSection.removeClass ( 'hidden' );
 		}
+		*/
+		if ( fromCategory ) {
+			$id.inputTitle.html ( '' ).addClass ( 'hidden' );
+		} else {
+			$id.inputTitle.html ( $ ( article.title ).html () ).removeClass ( 'hidden' );
+		}
+		$id.titleSection.removeClass ( 'hidden' );
 		$id.forumInput.attr ( 'data-location', JSON.stringify ( location ) );
 		$id.userPost.removeClass ( 'hidden' );
 		$id.forumInput.removeClass ( 'hidden' );
