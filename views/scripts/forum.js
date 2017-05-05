@@ -909,11 +909,23 @@
 			
 			let $id = app.$ui.id;
 			
-			$ ( window ).on ( 'beforeunload', () => {
-				for ( let id in app.rooms ) {
-					socket.emit ( 'leave', id, app.noop );
+			$ ( window ).on ( {
+				load: () => {
+					// cache the notification sound
+					new Audio ( 'sound/typewriter-notification-fast.mp3' );
+				},
+				beforeunload: () => {
+					for ( let id in app.rooms ) {
+						socket.emit ( 'leave', id, app.noop );
+					}
+				},
+				blur: () => {
+					app.hasFocus = false;
+				},
+				focus: () => {
+					app.hasFocus = true;
 				}
-			} );
+			});
 			
 			$id.userChatBar.sortable ( {
 				scroll: false,
@@ -1031,6 +1043,7 @@
 				queue: _queue,
 				escapeHTML: _$escapeHTML,
 				listening: null,
+				hasFocus: true,
 				
 				errorMessage: function ( message ) {
 					_$ui.id.userMessage.html ( '<span class="error-message">' + ( message || 'Something went wrong, but I don\'t know what.  Sorry about that. See console and contact system administrator.' ) + '</span>' );
@@ -1339,6 +1352,9 @@
 									}
 								} else {
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
+									if ( !_app.hasFocus ) {
+										$id.chatNotify [ 0 ].play ();
+									}
 								}
 							}
 							
@@ -1433,6 +1449,9 @@
 									}
 								} else {
 									$id.userChat.find ( `[data-room=${room}]` ).addClass ( 'notify' );
+									if ( !_app.hasFocus ) {
+										$id.chatNotify [ 0 ].play ();
+									}
 								}
 							} else {
 								console.log ( 'update deferred' );
@@ -1552,6 +1571,9 @@
 								$id.userChatContent.append ( message );
 							} else {
 								$id.userChatBar.find ( '[data-room="'+ id +'"]' ).addClass ( 'notify' );
+								if ( !_app.hasFocus ) {
+									$id.chatNotify [ 0 ].play ();
+								}
 							}
 						}
 					}
