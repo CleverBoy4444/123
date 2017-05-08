@@ -1053,6 +1053,10 @@
 					_$ui.id.userMessage.html ( '<span class="message">' + message + '</span>' );
 				},
 				
+				notifyUser: function () {
+					_$ui.id.chatNotify [ 0 ].play ();
+				},
+				
 				objToDataValue: function ( obj, def ) {
 					let key, list = [], data;
 					
@@ -1185,7 +1189,7 @@
 						if ( 'posts' in article ) {
 							article.body = _app.sanitize ( md.render ( article.body ) );
 						} else {
-							article.body = _app.sanitize ( md.render ( article.body.replace ( '\n', '\\n' ) + `  —  <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
+							article.body = _app.sanitize ( md.render ( article.body /*.replace ( '\n', '\\n' )*/ + `  —  <span class="owner link">${article.username}</span><span class="created">${_app.shortDate ( new Date ( article.created ) )}</span>` ) );
 						}
 						
 						article.rank = $.extend ( true, {}, rank );
